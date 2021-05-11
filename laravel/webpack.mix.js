@@ -17,6 +17,7 @@ mix.js('resources/js/app.js', 'public/js')
         require('postcss-import'),
         require('tailwindcss'),
     ])
+    .sourceMaps()
     .webpackConfig(require('./webpack.config'));
 
 mix.disableNotifications();
