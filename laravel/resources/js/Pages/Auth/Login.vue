@@ -78,14 +78,19 @@
 
         methods: {
             submit() {
-                this.form
-                    .transform(data => ({
-                        ... data,
-                        remember: this.form.remember ? 'on' : ''
-                    }))
-                    .post(this.route('login'), {
-                        onFinish: () => this.form.reset('password'),
-                    })
+                //refresh csrf token
+                axios.get('sanctum/csrf-cookie').then(function() {
+                    this.form
+                        .transform(data => ({
+                            ... data,
+                            remember: this.form.remember ? 'on' : ''
+                        }))
+                        .post(this.route('login'), {
+                            onFinish: () => this.form.reset('password'),
+                        })
+                }.bind(this)).catch(() => {
+                    alert('Error');
+                });
             }
         }
     }

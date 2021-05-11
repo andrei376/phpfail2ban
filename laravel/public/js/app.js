@@ -17640,16 +17640,21 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   },
   methods: {
     submit: function submit() {
-      var _this = this;
+      //refresh csrf token
+      axios.get('sanctum/csrf-cookie').then(function () {
+        var _this = this;
 
-      this.form.transform(function (data) {
-        return _objectSpread(_objectSpread({}, data), {}, {
-          remember: _this.form.remember ? 'on' : ''
+        this.form.transform(function (data) {
+          return _objectSpread(_objectSpread({}, data), {}, {
+            remember: _this.form.remember ? 'on' : ''
+          });
+        }).post(this.route('login'), {
+          onFinish: function onFinish() {
+            return _this.form.reset('password');
+          }
         });
-      }).post(this.route('login'), {
-        onFinish: function onFinish() {
-          return _this.form.reset('password');
-        }
+      }.bind(this))["catch"](function () {
+        alert('Error');
       });
     }
   }
@@ -18170,7 +18175,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       this.enabling = true;
-      this.$inertia.post('/user/two-factor-authentication', {}, {
+      this.$inertia.post('two-factor-authentication', {}, {
         preserveScroll: true,
         onSuccess: function onSuccess() {
           return Promise.all([_this.showQrCode(), _this.showRecoveryCodes()]);
@@ -18183,21 +18188,21 @@ __webpack_require__.r(__webpack_exports__);
     showQrCode: function showQrCode() {
       var _this2 = this;
 
-      return axios.get('/user/two-factor-qr-code').then(function (response) {
+      return axios.get('two-factor-qr-code').then(function (response) {
         _this2.qrCode = response.data.svg;
       });
     },
     showRecoveryCodes: function showRecoveryCodes() {
       var _this3 = this;
 
-      return axios.get('/user/two-factor-recovery-codes').then(function (response) {
+      return axios.get('two-factor-recovery-codes').then(function (response) {
         _this3.recoveryCodes = response.data;
       });
     },
     regenerateRecoveryCodes: function regenerateRecoveryCodes() {
       var _this4 = this;
 
-      axios.post('/user/two-factor-recovery-codes').then(function (response) {
+      axios.post('two-factor-recovery-codes').then(function (response) {
         _this4.showRecoveryCodes();
       });
     },
@@ -18205,7 +18210,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this5 = this;
 
       this.disabling = true;
-      this.$inertia["delete"]('/user/two-factor-authentication', {
+      this.$inertia["delete"]('two-factor-authentication', {
         preserveScroll: true,
         onSuccess: function onSuccess() {
           return _this5.disabling = false;
