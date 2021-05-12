@@ -120,7 +120,7 @@ class StatsController extends Controller
         ];
 
         try {
-            // DB::enableQueryLog();
+            DB::enableQueryLog();
 
             $ipInfo = IpInfo::updateOrCreate(
                 [
@@ -130,12 +130,12 @@ class StatsController extends Controller
                 $saveIp
             );
 
-            /*Log::debug(
+            Log::debug(
                 __METHOD__.
                 " query: \n".
                 print_r(DB::getQueryLog(), true).
                 "\n"
-            );*/
+            );
         } catch (Exception $e) {
             Log::error(
                 __METHOD__.
