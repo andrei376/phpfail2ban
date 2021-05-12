@@ -19,11 +19,12 @@ class CreateIpInfosTable extends Migration
 
             $table->id();
 
-            $table->char('ipnum', 16)->charset('binary');
+            $table->string('ipnum', 16)->charset('binary');
+
             $table->integer('mask')->default(32)->index();
 
-            $table->char('start', 16)->charset('binary')->index();
-            $table->char('end', 16)->charset('binary')->index();
+            $table->string('start', 16)->charset('binary')->index();
+            $table->string('end', 16)->charset('binary')->index();
 
             $table->string('inetnum')->nullable();
             $table->string('netname')->nullable();

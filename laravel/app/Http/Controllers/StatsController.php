@@ -61,11 +61,6 @@ class StatsController extends Controller
             abort(403, __('[Unauthorized]'));
         }
 
-        Log::debug(
-            __METHOD__.
-            ' ip='.$ip
-        );
-
         $agent = auth()->user()->currentAccessToken()->name ?? 'agent_missing';
 
         if (stripos($ip, ':') !== false) {
@@ -120,7 +115,7 @@ class StatsController extends Controller
         ];
 
         try {
-            DB::enableQueryLog();
+            // DB::enableQueryLog();
 
             $ipInfo = IpInfo::updateOrCreate(
                 [
@@ -130,12 +125,12 @@ class StatsController extends Controller
                 $saveIp
             );
 
-            Log::debug(
+            /*Log::debug(
                 __METHOD__.
                 " query: \n".
                 print_r(DB::getQueryLog(), true).
                 "\n"
-            );
+            );*/
         } catch (Exception $e) {
             Log::error(
                 __METHOD__.
@@ -146,7 +141,7 @@ class StatsController extends Controller
             return response()->json(['message' => __('[error saving ip]')], 400);
         }
 
-        // dump($ipInfo->toArray());
+        dump($ipInfo->toArray());
 
         $ipId = $ipInfo->id;
 
