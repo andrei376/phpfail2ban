@@ -141,7 +141,7 @@ class StatsController extends Controller
             return response()->json(['message' => __('[error saving ip]')], 400);
         }
 
-        dump($ipInfo->toArray());
+        // dump($ipInfo->toArray());
 
         $ipId = $ipInfo->id;
 
