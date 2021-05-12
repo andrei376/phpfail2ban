@@ -12,12 +12,55 @@
 
 namespace App\Models{
 /**
+ * App\Models\Agent
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|Agent newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Agent newQuery()
+ * @method static \Illuminate\Database\Query\Builder|Agent onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Agent query()
+ * @method static \Illuminate\Database\Query\Builder|Agent withTrashed()
+ * @method static \Illuminate\Database\Query\Builder|Agent withoutTrashed()
+ * @mixin \Eloquent
+ */
+	class IdeHelperAgent extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
  * App\Models\IpInfo
  *
+ * @mixin IdeHelperIpInfo
+ * @property int $id
+ * @property mixed $ipnum
+ * @property int $mask
+ * @property mixed $start
+ * @property mixed $end
+ * @property string|null $inetnum
+ * @property string|null $netname
+ * @property string|null $country
+ * @property string|null $orgname
+ * @property string|null $geoipcountry
+ * @property string|null $last_check
+ * @property int $checked
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder|IpInfo newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|IpInfo newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|IpInfo query()
- * @mixin \Eloquent
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereChecked($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereCountry($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereEnd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereGeoipcountry($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereInetnum($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereIpnum($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereLastCheck($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereMask($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereNetname($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereOrgname($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereStart($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|IpInfo whereUpdatedAt($value)
  */
 	class IdeHelperIpInfo extends \Eloquent {}
 }
@@ -26,6 +69,7 @@ namespace App\Models{
 /**
  * App\Models\User
  *
+ * @mixin IdeHelperUser
  * @property int $id
  * @property string $name
  * @property string $email
@@ -59,7 +103,6 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorRecoveryCodes($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
- * @mixin \Eloquent
  */
 	class IdeHelperUser extends \Eloquent implements \Illuminate\Contracts\Auth\MustVerifyEmail {}
 }

@@ -21,5 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/save/{action}/{jail}/{ip}', [StatsController::class, 'save']);
+    Route::get('/save/{action}/{jail}/{ip}', [StatsController::class, 'save'])->where('ip', '(.*)');
 });
