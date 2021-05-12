@@ -61,6 +61,11 @@ class StatsController extends Controller
             abort(403, __('[Unauthorized]'));
         }
 
+        Log::debug(
+            __METHOD__.
+            ' ip='.$ip
+        );
+
         $agent = auth()->user()->currentAccessToken()->name ?? 'agent_missing';
 
         if (stripos($ip, ':') !== false) {
