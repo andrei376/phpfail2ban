@@ -24,9 +24,15 @@ class StatsController extends Controller
             'msg_info' => 'test info'
         ];*/
 
+        $ipCount = IpInfo::count();
+        $actionCount = Agent::withTrashed()->count();
+
+
         return Inertia::render('Stats/Index', [
             'laravelVersion' => Application::VERSION,
             'phpVersion' => PHP_VERSION,
+            'ipCount' => $ipCount,
+            'actionCount' => $actionCount
             // 'flash' => $flash
         ]);
     }
@@ -43,6 +49,8 @@ class StatsController extends Controller
 
         $data['loadAvg'] = $loadAvg;
         $data['date'] = date('H:i:s');
+
+        $data['checkCount'] = IpInfo::checkCount();
 
         return response()->json($data);
     }

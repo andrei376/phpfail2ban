@@ -4,6 +4,25 @@
             <div class="col-12 mx-auto">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">
+                        <table class="table table-striped table-bordered table-sm">
+                            <thead class="table-dark">
+                                <tr class="d-flex">
+                                    <th scope="col" class="col-3">{{ this.__('[Items]') }}</th>
+                                    <th scope="col" class="col-9">{{ this.__('[Rows in db]') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="d-flex">
+                                    <td class="col-3">{{ this.__('[IP]') }}</td>
+                                    <td class="col-9">{{ ipCount }}</td>
+                                </tr>
+                                <tr class="d-flex">
+                                    <td class="col-3">{{ this.__('[Actions]') }}</td>
+                                    <td class="col-9">{{ actionCount }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br>
                         laravelVersion: {{ laravelVersion }}
                         <br>
 
@@ -37,6 +56,8 @@ export default {
     props: [
         'laravelVersion',
         'phpVersion',
+        'ipCount',
+        'actionCount',
     ],
     methods: {
         vueVersion: function(){

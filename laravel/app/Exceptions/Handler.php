@@ -67,7 +67,7 @@ class Handler extends ExceptionHandler
 
         if ($response->status() === 419) {
             return back()->with([
-                'message' => 'The page expired, please try again.',
+                'message' => __('[Page expired, please try again.]'),
             ]);
         }
 

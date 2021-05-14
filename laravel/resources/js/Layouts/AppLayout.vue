@@ -18,7 +18,19 @@
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <jet-nav-link :href="this.route('stats.index')" class="text-decoration-none" :active="this.route().current('stats.index')">
-                                    {{ this.__('STATS') }}
+                                    {{ this.__('[STATS]') }}
+                                </jet-nav-link>
+
+                                <jet-nav-link :href="this.route('top.index')" class="text-decoration-none" :active="this.route().current('top.index')">
+                                    {{ this.__('[TOP]') }}
+                                </jet-nav-link>
+
+                                <jet-nav-link :href="this.route('top.browse')" class="text-decoration-none" :active="this.route().current('top.browse')">
+                                    {{ this.__('[BROWSE]') }}
+                                </jet-nav-link>
+
+                                <jet-nav-link :href="this.route('users.index')" class="text-decoration-none" :active="this.route().current('users.index')">
+                                    {{ this.__('[USERS]') }}
                                 </jet-nav-link>
                             </div>
                         </div>
@@ -143,6 +155,18 @@
                         <jet-responsive-nav-link :href="this.route('stats.index')" :active="this.route().current('stats.index')">
                             {{ this.__('STATS') }}
                         </jet-responsive-nav-link>
+
+                        <jet-responsive-nav-link :href="this.route('top.index')" class="text-decoration-none" :active="this.route().current('top.index')">
+                            {{ this.__('[TOP]') }}
+                        </jet-responsive-nav-link>
+
+                        <jet-responsive-nav-link :href="this.route('top.browse')" class="text-decoration-none" :active="this.route().current('top.browse')">
+                            {{ this.__('[BROWSE]') }}
+                        </jet-responsive-nav-link>
+
+                        <jet-responsive-nav-link :href="this.route('users.index')" class="text-decoration-none" :active="this.route().current('users.index')">
+                            {{ this.__('[USERS]') }}
+                        </jet-responsive-nav-link>
                     </div>
 
                     <!-- Responsive Settings Options -->
@@ -224,11 +248,11 @@
             <!-- Page Content -->
             <main>
                 <div class="">
-                    <div class="col-sm-12 col-xl-10 inline-block px-2">
+                    <div class="col-12 col-xl-10 inline-block px-2">
                         <slot />
                     </div>
 
-                    <div class="col-sm-12 col-xl-2 inline-block align-top pt-2 pr-1 px-2">
+                    <div class="col-12 col-xl-2 inline-block align-top pt-2 pr-1 px-2">
                         <fail-stats />
                     </div>
                 </div>

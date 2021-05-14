@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @mixin IdeHelperIpInfo
@@ -117,5 +119,27 @@ class IpInfo extends Model
     {
         $hex = bin2hex(inet_pton($ip));
         return implode(':', str_split($hex, 4));
+    }
+
+    public static function checkCount(): int
+    {
+        $data = 0;
+        try {
+//            DB::enableQueryLog();
+            $data = self::
+            where('checked', 0)
+                ->count();
+//            dump(DB::getQueryLog());
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                " error: ".$e->getMessage().
+                "\n"
+            );
+        }
+
+//        dump($data);
+
+        return $data ?? 0;
     }
 }
