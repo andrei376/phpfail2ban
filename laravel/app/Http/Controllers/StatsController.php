@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\LogsResource;
 use App\Models\Agent;
 use App\Models\IpInfo;
+use App\Models\RblLog;
 use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -51,6 +55,8 @@ class StatsController extends Controller
         $data['date'] = date('H:i:s');
 
         $data['checkCount'] = IpInfo::checkCount();
+        $data['logCount'] = RblLog::where('read', false)->count();
+
 
         return response()->json($data);
     }
@@ -65,6 +71,7 @@ class StatsController extends Controller
      */
     public function save($action, $jail, $ip): JsonResponse
     {
+        //E1nC0KHDG9s7OfyXXzCAjWRBRyFBCuHjY2V5apab
         if (!auth()->user()->tokenCan('create')) {
             abort(403, __('[Unauthorized]'));
         }
@@ -216,5 +223,61 @@ class StatsController extends Controller
         );
 
         return response()->json(['message' => __('[Information saved.]')], 201);
+    }
+
+    public function getLogs(Request $request): AnonymousResourceCollection
+    {
+        // DB::enableQueryLog();
+
+        $data = RblLog::orderBy($request->column ?? 'id', $request->order ?? 'desc')
+            ->paginate($request->perPage);
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        return LogsResource::collection($data);
+    }
+
+    public function readLog(RblLog $id)
+    {
+        //dump($id);
+        // DB::enableQueryLog();
+
+        $id->read = true;
+        $id->save();
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        return response('');
+    }
+
+    public function deleteLog(RblLog $id)
+    {
+        // DB::enableQueryLog();
+
+        $id->delete();
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        return response('');
+    }
+
+    public function browse(Request $request, $showList = 'White')
+    {
+
     }
 }

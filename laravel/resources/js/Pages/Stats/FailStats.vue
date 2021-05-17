@@ -9,6 +9,8 @@
                     <br>
                     {{ this.__('[Date]')}}: {{ statsData.date }}
                     <br>
+                    <br>
+                    <inertia-link v-if="statsData.logCount > 0" :href="this.route('stats.logs')" class="btn btn-sm btn-danger px-1 py-0 mt-2">{{ this.__('[Check LOGS]') }}</inertia-link>
                 </div>
 
                 <div class="pt-1">
