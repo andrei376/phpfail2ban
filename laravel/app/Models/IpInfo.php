@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use App\Helpers\WhoisLib;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 /**
  * @mixin IdeHelperIpInfo
@@ -31,6 +36,27 @@ class IpInfo extends Model
         'last_check',
 
         'checked'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'last_check' => 'datetime',
+        'checked' => 'boolean',
+    ];
+
+    protected $appends = [
+        'created_at_format',
+        'created_at_ago',
+        'created_at_dt',
+        'last_check_format',
+        'last_check_ago',
+        'last_check_dt',
+        'format_ip',
+        'format_cidr',
+        'range',
+        'total_ip_format',
+        'hits_sum_count_format',
+        'row_count_format'
     ];
 
     public static function getRange($ip, $mask): array
@@ -141,5 +167,254 @@ class IpInfo extends Model
 //        dump($data);
 
         return $data ?? 0;
+    }
+
+    public static function hostnameRange($ip, $mask): string
+    {
+        //$cidr = $ip.'/'.$mask;
+
+        $result = '';
+
+        if ($range = self::getRange($ip, $mask)) {
+            $hostname = [
+                'low' => '',
+                'high' => ''
+            ];
+
+            if ($host = self::getHostByIp($range['start'])) {
+                $hostname['start'] = $host;
+            }
+
+            if ($host = self::getHostByIp($range['end'])) {
+                $hostname['end'] = $host;
+            }
+
+            $result = ': '.$range['start'].'->'.$range['end'].' ('.$hostname['start'].'->'.$hostname['end'].')';
+        }
+
+        return $result;
+    }
+
+    public static function getHostByIp($ip)
+    {
+        $cacheKey = $ip.'gethostname';
+
+        //check cache
+        if ($value = Cache::get($cacheKey)) {
+            return $value;
+        } else {
+            $whois = gethostbyaddr($ip);
+
+            $whoisLib = new WhoisLib();
+
+            $size = $whoisLib->arraySize($whois);
+
+            if ($size < 1000 * 1000) {
+                Cache::put($cacheKey, $whois, now()->addDay());
+            } else {
+                Log::debug(
+                    __METHOD__.
+                    " error saving to cache (size = $size)\n"
+                );
+            }
+            return $whois;
+        }
+    }
+
+    public function getFormatIpAttribute()
+    {
+        return inet_ntop($this->getRawOriginal('ipnum'));
+    }
+
+    public function getFormatCidrAttribute()
+    {
+        return inet_ntop($this->getRawOriginal('ipnum')).'/'.$this->mask;
+    }
+
+    public function getCreatedAtFormatAttribute()
+    {
+        if (is_null($this->created_at)) {
+            return null;
+        }
+        return $this->created_at->format('d F Y, H:i:s');
+    }
+
+    public function getCreatedAtAgoAttribute()
+    {
+        if (is_null($this->created_at)) {
+            return null;
+        }
+        return $this->created_at->diffForHumans();
+    }
+
+    public function getCreatedAtDtAttribute()
+    {
+        return $this->getCreatedAtFormatAttribute().'<br>'.$this->getCreatedAtAgoAttribute();
+    }
+
+    public function getLastCheckFormatAttribute()
+    {
+        if (is_null($this->last_check)) {
+            return 'never';
+        }
+
+        return $this->last_check->format('d F Y, H:i:s');
+    }
+
+    public function getLastCheckAgoAttribute()
+    {
+        if (is_null($this->last_check)) {
+            return null;
+        }
+
+        return $this->last_check->diffForHumans();
+    }
+
+    public function getLastCheckDtAttribute()
+    {
+        return $this->getLastCheckFormatAttribute().'<br>'.$this->getLastCheckAgoAttribute();
+    }
+
+    public function getRangeAttribute()
+    {
+        return inet_ntop($this->getRawOriginal('start')).' -> '.inet_ntop($this->getRawOriginal('end'));
+    }
+
+    public function getTotalIpFormatAttribute(): ?string
+    {
+        if (is_null($this->format_ip)) {
+            return null;
+        }
+
+        $mask = 32;
+
+        if (stripos($this->format_ip, ':') !== false) {
+            $mask = 128;
+        }
+
+        $total = pow(2, ($mask - $this->mask));
+
+        return number_format ($total ,  0 ,  "," ,  "." );
+    }
+
+    public function getHitsSumCountFormatAttribute(): ?string
+    {
+        if (is_null($this->hits_sum_count)) {
+            return null;
+        }
+
+        return number_format ($this->hits_sum_count ,  0 ,  "," ,  "." );
+    }
+
+    public function getRowCountFormatAttribute(): ?string
+    {
+        if (is_null($this->row_count)) {
+            return null;
+        }
+
+        return number_format ($this->row_count ,  0 ,  "," ,  "." );
+    }
+
+    public static function isMultiple($ip, $prefix, $searchId): array
+    {
+        $findRange = self::getRange($ip, $prefix);
+
+        $bc = inet_pton($findRange['end']);
+
+        //dump("search $ip/$prefix");
+
+
+        $data = self::
+            where([
+                ['start', '<=', inet_pton($ip)],
+                ['end', '>=', $bc]
+            ])
+            ->orWhere([
+                ['start', '>=', inet_pton($ip)],
+                ['end', '<=', $bc]
+            ])
+            ->orderBy('start', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get()->toArray();
+
+        // dump($data);
+
+        $resultData = [];
+
+        foreach ($data as $row) {
+            if ($searchId !=  $row['id']) {
+                $range = self::getRange(inet_ntop($row['ipnum']), $row['mask']);
+
+                $rangeStr = $range['start'].' -> '.$range['end'];
+
+                $resultData[] = [
+                    'ip' => '<a href="'.
+                        URL::route('top.show', ['id' => $row['id']]).
+                        '">'.
+                        inet_ntop($row['ipnum']).'/'.$row['mask'].'</a>'.'<br>'.
+                        $rangeStr,
+                    'inetnum' => $row['inetnum'],
+                    'netname' => $row['netname'],
+                    'orgname' => $row['orgname'],
+                    'country' => $row['country'],
+                    'checked' => $row['checked']
+                ];
+            }
+        }
+
+        return $resultData;
+    }
+
+    public static function searchOthers($searchId, $searchIp, $cidr = null): array
+    {
+        // dump($searchIp);
+        // dump($cidr);
+
+        $searchMask = $cidr;
+
+        $findRange = self::getRange($searchIp, $searchMask);
+
+        // dump($findRange);
+
+        $start = inet_pton($findRange['start']);
+        $end = inet_pton($findRange['end']);
+
+
+        $rows = self::
+            where([
+                ['ipnum', '>=', $start],
+                ['ipnum', '<=', $end]
+            ])
+            ->orderBy('ipnum', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        if (empty($rows)) {
+            return [];
+        }
+
+        $resultData = [];
+
+        foreach ($rows as $row) {
+            $range = self::getRange(inet_ntop($row['ipnum']), $row['mask']);
+
+            $rangeStr = $range['start'].' -> '.$range['end'];
+
+            $resultData[] = [
+                'ip' => ($row['id'] == $searchId ? '<span class="badge bg-success mr-1" style="min-width: 2rem;">'.__('self').'</span>' : '').
+                    '<a href="'.
+                    URL::route('top.show', ['id' => $row['id']]).
+                    '">'.
+                    inet_ntop($row['ipnum']).'/'.$row['mask'].'</a>'.'<br>'.
+                    $rangeStr,
+                'inetnum' => $row['inetnum'],
+                'netname' => $row['netname'],
+                'orgname' => $row['orgname'],
+                'country' => $row['country'],
+                'checked' => $row['checked']
+            ];
+        }
+
+        return $resultData;
     }
 }
