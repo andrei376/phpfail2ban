@@ -1,4 +1,7 @@
 {
     "/js/app.js": "/js/app.js",
-    "/css/app.css": "/css/app.css"
+    "/css/app.css": "/css/app.css",
+    "/css/fonts/bootstrap-icons.woff": "/css/fonts/bootstrap-icons.woff",
+    "/css/fonts/bootstrap-icons.woff2": "/css/fonts/bootstrap-icons.woff2",
+    "/css/bootstrap-icons.css": "/css/bootstrap-icons.css"
 }

@@ -15,7 +15,8 @@
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
         "tightenco/ziggy": "^1.0",
-        "ext-json": "*"
+        "ext-json": "*",
+        "ext-geoip": "*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.10",

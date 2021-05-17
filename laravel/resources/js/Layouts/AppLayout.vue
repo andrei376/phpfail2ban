@@ -29,6 +29,10 @@
                                     {{ this.__('[BROWSE]') }}
                                 </jet-nav-link>
 
+                                <jet-nav-link :href="this.route('stats.logs')" class="text-decoration-none" :active="this.route().current('stats.logs')">
+                                    {{ this.__('[LOG]') }}
+                                </jet-nav-link>
+
                                 <jet-nav-link :href="this.route('users.index')" class="text-decoration-none" :active="this.route().current('users.index')">
                                     {{ this.__('[USERS]') }}
                                 </jet-nav-link>
@@ -162,6 +166,10 @@
 
                         <jet-responsive-nav-link :href="this.route('top.browse')" class="text-decoration-none" :active="this.route().current('top.browse')">
                             {{ this.__('[BROWSE]') }}
+                        </jet-responsive-nav-link>
+
+                        <jet-responsive-nav-link :href="this.route('stats.logs')" class="text-decoration-none" :active="this.route().current('stats.logs')">
+                            {{ this.__('[LOG]') }}
                         </jet-responsive-nav-link>
 
                         <jet-responsive-nav-link :href="this.route('users.index')" class="text-decoration-none" :active="this.route().current('users.index')">
