@@ -58,7 +58,7 @@
                                     <td>
                                         <span v-if="ipInfo.checked" class="badge bg-success me-5" style="min-width: 4rem;">{{ ipInfo.checked }}</span>
                                         <span v-else class="badge bg-danger me-5" style="min-width: 4rem;">{{ ipInfo.checked }}</span>
-                                        <inertia-link class="badge bg-secondary me-2 text-decoration-none hover:text-white" :href="this.route('top.toggle', {'id': ipInfo.id, 'field': 'checked'})">{{ this.__('[Change]') }}</inertia-link>
+                                        <inertia-link class="btn badge bg-secondary me-2 text-decoration-none hover:text-white" :href="this.route('top.toggle', {'id': ipInfo.id, 'field': 'checked'})">{{ this.__('[Change]') }}</inertia-link>
                                     </td>
                                 </tr>
                                 </tbody>
