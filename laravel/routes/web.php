@@ -57,6 +57,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/stats', [StatsController::class, 'stats'])->name('stats');
 
     Route::get('/check', [TopController::class, 'check'])->name('top.check');
+    Route::get('/netname', [TopController::class, 'netname'])->name('top.checknetname');
 
     Route::get('/top', [TopController::class, 'index'])->name('top.index');
     Route::post('/topip1', [TopController::class, 'topIp1'])->name('top.ip1');

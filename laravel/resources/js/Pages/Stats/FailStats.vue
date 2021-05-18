@@ -23,6 +23,16 @@
                     </div>
                 </div>
 
+                <div class="pt-1">
+                    <div class="text-center">{{ this.__('[Missing netname]') }}</div>
+
+                    <div class="w-12/12 inline-block">
+                        <span style="min-width: 60px;display:inline-block;">{{ this.__('[IP]') }}:</span>
+                            <inertia-link v-if="statsData.netnameCount > 0" style="min-width: 35px; display: inline-block; text-align: center;" class="btn btn-sm btn-danger px-1 py-0" :href="this.route('top.checknetname')">{{ statsData.netnameCount }}</inertia-link>
+                            <span v-else style="min-width: 35px; display: inline-block; text-align: center;" class="rounded px-1 font-bold text-green-700 bg-green-200">{{ statsData.netnameCount }}</span>
+                    </div>
+                </div>
+
                 <div v-if="isLoading" class="overlay-spinner spinner-border text-primary" role="status" aria-hidden="true"></div>
             </div>
         </div>
@@ -39,7 +49,9 @@ export default {
             statsData: {
                 'loadAvg': ['0', '1', '2'],
                 'date': '',
-                'checkCount': 0
+                'logCount': 0,
+                'checkCount': 0,
+                'netnameCount': 0
             }
         }
     },

@@ -55,6 +55,7 @@ class StatsController extends Controller
         $data['date'] = date('H:i:s');
 
         $data['checkCount'] = IpInfo::checkCount();
+        $data['netnameCount'] = IpInfo::netnameCount();
         $data['logCount'] = RblLog::where('read', false)->count();
 
 

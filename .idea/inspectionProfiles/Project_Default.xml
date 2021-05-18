@@ -12,5 +12,6 @@
     <inspection_tool class="PhpUnused" enabled="true" level="WEAK WARNING" enabled_by_default="true" field_visibility="private" method_visibility="private" const_visibility="private">
       <option name="CLASS" value="false" />
     </inspection_tool>
+    <inspection_tool class="UnknownColumnInspection" enabled="true" level="TYPO" enabled_by_default="true" />
   </profile>
 </component>

@@ -33,7 +33,28 @@ class TopController extends Controller
         //dump($ip);
 
         if (empty($ip)) {
-            return Redirect::back()->with('msg.error', __('Nothing to show.'));
+            return Redirect::back()->with('msg.error', __('[Nothing to show.]'));
+        }
+
+        $id = $ip->id;
+
+        //redirect to show
+        return redirect()->route('top.show', [
+            'id' => $id
+        ]);
+    }
+
+    public function netname(): RedirectResponse
+    {
+        //find first 'netname' = '' and redirect to show
+        $ip = IpInfo::
+        where('netname', null)
+            ->orderBy('last_check', 'asc')
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if (empty($ip)) {
+            return Redirect::back()->with('msg.error', __('[Nothing to show.]'));
         }
 
         $id = $ip->id;

@@ -7,9 +7,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
@@ -176,6 +174,28 @@ class IpInfo extends Model
         return $data ?? 0;
     }
 
+    public static function netnameCount(): int
+    {
+        $data = 0;
+        try {
+//            DB::enableQueryLog();
+            $data = self::
+            where('netname', null)
+                ->count();
+//            dump(DB::getQueryLog());
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                " error: ".$e->getMessage().
+                "\n"
+            );
+        }
+
+//        dump($data);
+
+        return $data ?? 0;
+    }
+
     public static function hostnameRange($ip, $mask): string
     {
         //$cidr = $ip.'/'.$mask;
@@ -233,12 +253,12 @@ class IpInfo extends Model
         return inet_ntop($this->getRawOriginal('ipnum'));
     }
 
-    public function getFormatCidrAttribute()
+    public function getFormatCidrAttribute(): string
     {
         return inet_ntop($this->getRawOriginal('ipnum')).'/'.$this->mask;
     }
 
-    public function getCreatedAtFormatAttribute()
+    public function getCreatedAtFormatAttribute(): ?string
     {
         if (is_null($this->created_at)) {
             return null;
@@ -246,7 +266,7 @@ class IpInfo extends Model
         return $this->created_at->format('d F Y, H:i:s');
     }
 
-    public function getCreatedAtAgoAttribute()
+    public function getCreatedAtAgoAttribute(): ?string
     {
         if (is_null($this->created_at)) {
             return null;
@@ -254,12 +274,12 @@ class IpInfo extends Model
         return $this->created_at->diffForHumans();
     }
 
-    public function getCreatedAtDtAttribute()
+    public function getCreatedAtDtAttribute(): string
     {
         return $this->getCreatedAtFormatAttribute().'<br>'.$this->getCreatedAtAgoAttribute();
     }
 
-    public function getLastCheckFormatAttribute()
+    public function getLastCheckFormatAttribute(): string
     {
         if (is_null($this->last_check)) {
             return 'never';
@@ -268,7 +288,7 @@ class IpInfo extends Model
         return $this->last_check->format('d F Y, H:i:s');
     }
 
-    public function getLastCheckAgoAttribute()
+    public function getLastCheckAgoAttribute(): ?string
     {
         if (is_null($this->last_check)) {
             return null;
@@ -277,12 +297,12 @@ class IpInfo extends Model
         return $this->last_check->diffForHumans();
     }
 
-    public function getLastCheckDtAttribute()
+    public function getLastCheckDtAttribute(): string
     {
         return $this->getLastCheckFormatAttribute().'<br>'.$this->getLastCheckAgoAttribute();
     }
 
-    public function getRangeAttribute()
+    public function getRangeAttribute(): string
     {
         return inet_ntop($this->getRawOriginal('start')).' -> '.inet_ntop($this->getRawOriginal('end'));
     }
