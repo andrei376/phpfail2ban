@@ -6,6 +6,7 @@ use App\Helpers\WhoisLib;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -55,9 +56,15 @@ class IpInfo extends Model
         'format_cidr',
         'range',
         'total_ip_format',
-        'hits_sum_count_format',
+        'total_db_ip_format',
+        'actions_count_format',
         'row_count_format'
     ];
+
+    public function actions(): HasMany
+    {
+        return $this->hasMany(Agent::class)->withTrashed();
+    }
 
     public static function getRange($ip, $mask): array
     {
@@ -280,6 +287,14 @@ class IpInfo extends Model
         return inet_ntop($this->getRawOriginal('start')).' -> '.inet_ntop($this->getRawOriginal('end'));
     }
 
+    public function getTotalDbIpFormatAttribute(): ?string
+    {
+        if (is_null($this->total_ip)) {
+            return null;
+        }
+
+        return number_format ($this->total_ip ,  0 ,  "," ,  "." );
+    }
     public function getTotalIpFormatAttribute(): ?string
     {
         if (is_null($this->format_ip)) {
@@ -297,13 +312,13 @@ class IpInfo extends Model
         return number_format ($total ,  0 ,  "," ,  "." );
     }
 
-    public function getHitsSumCountFormatAttribute(): ?string
+    public function getActionsCountFormatAttribute(): ?string
     {
-        if (is_null($this->hits_sum_count)) {
+        if (is_null($this->actions_count)) {
             return null;
         }
 
-        return number_format ($this->hits_sum_count ,  0 ,  "," ,  "." );
+        return number_format ($this->actions_count,  0 ,  "," ,  "." );
     }
 
     public function getRowCountFormatAttribute(): ?string

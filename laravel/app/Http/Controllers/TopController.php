@@ -56,31 +56,10 @@ class TopController extends Controller
         if ($request->isMethod('post')) {
             $model = new IpInfo();
 
-            $searchField = 'id';
-            $searchValue = '';
-            foreach ($request->input('search') as $field => $value) {
-                //
-                if (!empty($value)) {
-                    switch ($field) {
-                        case 'ip':
-                            $searchField = DB::raw('INET6_NTOA(`ipnum`)');
-                            break;
+            $search = $this->parseSearchFields($request);
 
-                        case 'created_at':
-                            $searchField = DB::raw('DATE_FORMAT(`created_at`, "%d %M %Y, %H:%i:%s")');
-                            break;
-
-                        case 'last_check':
-                            $searchField = DB::raw('DATE_FORMAT(`last_check`, "%d %M %Y, %H:%i:%s")');
-                            break;
-
-                        default:
-                            $searchField = $field;
-                            break;
-                    }
-                    $searchValue = $value;
-                }
-            }
+            $searchField = $search['searchField'];
+            $searchValue = $search['searchValue'];
 
             //dump($searchField);
             // dump($searchValue);
@@ -456,5 +435,514 @@ class TopController extends Controller
         // dump($table);
 
         return $table;
+    }
+
+    private function parseSearchFields(Request $request): array
+    {
+        $searchField = 'id';
+        $searchValue = '';
+
+        foreach ($request->input('search') as $field => $value) {
+            //
+            if (!empty($value)) {
+                switch ($field) {
+                    case 'ip1':
+                        $searchField = DB::raw('IF(LOCATE(":", INET6_NTOA(`ipnum`)), SUBSTRING_INDEX(INET6_NTOA(`ipnum`), ":", 1), SUBSTRING_INDEX(INET6_NTOA(`ipnum`), ".", 1))');
+                        break;
+
+                    case 'format_cidr':
+                        $searchField = DB::raw('CONCAT(INET6_NTOA(`ipnum`),"/",`mask`)');
+                        break;
+
+                    case 'ip':
+                        $searchField = DB::raw('INET6_NTOA(`ipnum`)');
+                        break;
+
+                    case 'created_at':
+                        $searchField = DB::raw('DATE_FORMAT(`created_at`, "%d %M %Y, %H:%i:%s")');
+                        break;
+
+                    case 'year_added':
+                        $searchField = DB::raw('YEAR(`created_at`)');
+                        break;
+
+                    case 'last_check':
+                        $searchField = DB::raw('DATE_FORMAT(`last_check`, "%d %M %Y, %H:%i:%s")');
+                        break;
+
+                    case 'top_last_check':
+                        $searchField = DB::raw('DATE_FORMAT(`last_check`, "%Y-%m %M")');
+                        break;
+
+                    default:
+                        $searchField = $field;
+                        break;
+                }
+                $searchValue = $value;
+            }
+        }
+
+        return [
+            'searchField' => $searchField,
+            'searchValue' => $searchValue
+        ];
+    }
+    public function topIp1(Request $request)
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+        $ip1 = DB::raw('IF(LOCATE(":", INET6_NTOA(`ipnum`)), SUBSTRING_INDEX(INET6_NTOA(`ipnum`), ":", 1), SUBSTRING_INDEX(INET6_NTOA(`ipnum`), ".", 1)) AS `ip1`');
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                // ->groupBy($ip1)
+                ->groupBy('ip1')
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    $ip1,
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topCountry(Request $request)
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy('country')
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    'country',
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topActions(Request $request)
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy('id')
+                ->select([
+                    'id',
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    DB::raw('CONCAT(INET6_NTOA(`ipnum`),"/",`mask`) AS `format_cidr`'),
+                    'ipnum',
+                    'mask',
+                    'netname',
+                    'country'
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->withCount('actions')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            // dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topNetname(Request $request)
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy('netname')
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    'netname',
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topInetnum(Request $request)
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy('inetnum')
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    'inetnum',
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topOrgname(Request $request, $showList = 'White')
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy('orgname')
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    'orgname',
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topDateAdded(Request $request, $showList = 'White')
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy(DB::raw('YEAR(`created_at`)'))
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    DB::raw('YEAR(`created_at`) AS `year_added`'),
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
+    public function topLastCheck(Request $request, $showList = 'White')
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+
+        // DB::enableQueryLog();
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy(DB::raw('DATE_FORMAT(`last_check`, "%Y-%m %M")'))
+                ->select([
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    DB::raw('DATE_FORMAT(`last_check`, "%Y-%m %M") AS `top_last_check`'),
+                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
+                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
+                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        /*Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );*/
+
+        foreach ($data as $id => $row) {
+            //dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
     }
 }

@@ -59,6 +59,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/check', [TopController::class, 'check'])->name('top.check');
 
     Route::get('/top', [TopController::class, 'index'])->name('top.index');
+    Route::post('/topip1', [TopController::class, 'topIp1'])->name('top.ip1');
+    Route::post('/topcountry', [TopController::class, 'topCountry'])->name('top.country');
+    Route::post('/topactions', [TopController::class, 'topActions'])->name('top.actions');
+    Route::post('/topnetname', [TopController::class, 'topNetname'])->name('top.netname');
+    Route::post('/topinetnum', [TopController::class, 'topInetnum'])->name('top.inetnum');
+    Route::post('/toporgname', [TopController::class, 'topOrgname'])->name('top.orgname');
+    Route::post('/topdateadded', [TopController::class, 'topDateAdded'])->name('top.dateadded');
+    Route::post('/toplastcheck', [TopController::class, 'topLastCheck'])->name('top.lastcheck');
 
     Route::get('/browse', [TopController::class, 'browse'])->name('top.browse');
     Route::post('/browse', [TopController::class, 'browse'])->name('top.getBrowse');
