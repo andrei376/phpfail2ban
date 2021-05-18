@@ -7,9 +7,8 @@
 
                         <data-table
                             :columns="columns"
-                            :table-name="tableName"
                             :data-url="this.route('top.getBrowse')"
-                            :order-by="'created_at'"
+                            :order-by="'actions_count'"
                             :order-dir="'desc'"
                             :per-page-rows="10"
                         />
@@ -110,9 +109,17 @@ export default {
                     'searchField': 'last_check'
                 },
                 {
+                    'name': this.__('[Actions]'),
+                    'showField': 'actions_count_format',
+                    'class': 'w-1/12',
+                    'sort': true,
+                    'sortField': 'actions_count',
+                },
+                {
                     'name': this.__('[Total IP]'),
-                    'showField': 'total_ip_format',
-                    'sort': false,
+                    'showField': 'total_db_ip_format',
+                    'sort': true,
+                    'sortField': 'total_ip'
                 }
             ]
         }

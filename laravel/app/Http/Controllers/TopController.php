@@ -71,6 +71,11 @@ class TopController extends Controller
             $data = $model
                 ->orderBy($request->column, $request->order)
                 ->orderBy('created_at', 'desc')
+                ->select([
+                    '*',
+                    DB::raw('(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                ])
+                ->withCount('actions')
                 ->where($searchField, 'like', '%'.$searchValue.'%')
                 ->paginate($request->perPage);
 
