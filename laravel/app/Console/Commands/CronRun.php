@@ -104,9 +104,8 @@ class CronRun extends Command
 
             $this->cleanup();
 
-            // $this->check();
+            $this->check();
 
-            // $this->export();
             //
         } catch (Exception $e) {
             $this->line(
@@ -155,11 +154,8 @@ class CronRun extends Command
 
         $agents = !$this->cleanupAgents();
 
-        $syslog = false;
-        // $syslog = !$this->cleanupSyslog();
 
-
-        if ($whois || $delete || $agents || $syslog) {
+        if ($whois || $delete || $agents) {
             $time_end = microtime(true);
             $time = round($time_end - $time_start, 4);
 
@@ -214,7 +210,7 @@ class CronRun extends Command
         try {
             $deleted = Agent::
                 whereRaw('`ip_info_id` NOT IN (SELECT `id` from '.$model->getTable().' WHERE `id`=`ip_info_id`)')
-                ->delete();
+                ->forceDelete();
         } catch (Exception $e) {
             $this->line(__('[ERROR! cleaning agents table: :msg]', ['msg' => $e->getMessage()]));
             return false;
@@ -224,6 +220,67 @@ class CronRun extends Command
 
         if ($deleted > 0) {
             RblLog::saveLog('crontab', __('[cleanup agents]'), __('[Deleted :deleted rows from agents. IDs not found in ipinfo]', ['deleted' => $deleted]));
+        }
+
+        return true;
+    }
+
+    /**
+     * checks
+     *
+     */
+    public function check(): void
+    {
+        $time_start = microtime(true);
+
+        DB::enableQueryLog();
+
+        $debug = !$this->checkNewActions();
+
+
+        if ($debug) {
+            $time_end = microtime(true);
+            $time = round($time_end - $time_start, 4);
+
+            $logs = DB::getQueryLog();
+
+            $this->line("SQL LOG: ".print_r($logs, true));
+
+            $this->line(__('[:method took :time seconds]', ['time' => $time, 'method' => __METHOD__]));
+        }
+    }
+
+    /**
+     * if new actions found newer than last_check -> mark unchecked
+     *
+     * @return bool
+     */
+    private function checkNewActions(): bool
+    {
+        $toCheck = IpInfo::
+            where('checked', 1)
+            ->select(['ip_infos.*'])
+            ->join('agents', function ($join) {
+                $join->on('agents.ip_info_id', '=', 'ip_infos.id')
+                    ->whereNull('agents.deleted_at');
+            })
+            ->whereColumn('agents.created_at', '>', 'ip_infos.last_check')
+            ->get();
+
+        // $this->line('to check='. print_r($toCheck->toArray(), true));
+
+        foreach ($toCheck as $row) {
+            $row->last_check = date('Y-m-d H:i:s');
+            $row->checked = 0;
+
+            // $this->line('to save ip='. print_r($row->toArray(), true));
+
+            try {
+                $row->saveOrFail();
+            } catch (Exception $e) {
+                $this->line(__("[ERROR! saving update, msg: :msg, trace:\n :trace]", ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]));
+                return false;
+            }
         }
 
         return true;

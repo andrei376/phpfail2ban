@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -62,6 +63,11 @@ class IpInfo extends Model
     public function actions(): HasMany
     {
         return $this->hasMany(Agent::class)->withTrashed();
+    }
+
+    public function lastAction(): HasOne
+    {
+        return $this->hasOne(Agent::class);
     }
 
     public static function getRange($ip, $mask): array
