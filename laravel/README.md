@@ -31,4 +31,5 @@ add system cron (every minute):
 `* * * * * WEBSERVER_USER cd /srv/www/phpfail2ban/laravel/ && /usr/bin/php artisan schedule:run >> /dev/null 2>&1`
 
 change directory to phpfail2ban location
+
 WEBSERVER_USER = run the cron as the webserver user (ex: www-data)
