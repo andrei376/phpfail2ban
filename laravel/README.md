@@ -25,6 +25,8 @@ laravel/config/fortify.php:  enable "Features::registration(),"
 
 disable it after user creation
 
+(@TODO make artisan command for user creation, so web register is not needed)
+
 
 add system cron (every minute):
 
