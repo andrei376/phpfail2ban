@@ -2,8 +2,11 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CronRun;
+use Exception;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -25,6 +28,22 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        try {
+            $schedule->command(CronRun::class)
+                ->withoutOverlapping()
+                ->everyMinute()
+                ->description('Fail2ban CronRun')
+                ->sendOutputTo(storage_path('logs/cron.log'))
+                ->emailWrittenOutputTo(env('APP_ADMIN_EMAIL', null))
+                ->runInBackground();
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                "\n, trace: ".$e->getTraceAsString().
+                "\n"
+            );
+        }
     }
 
     /**
