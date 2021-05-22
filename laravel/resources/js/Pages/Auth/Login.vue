@@ -92,6 +92,13 @@
                     alert('Error');
                 });
             }
+        },
+        mounted() {
+            document.addEventListener('keyup', function(e) {
+                if (e.key === "Enter") {
+                    this.submit();
+                }
+            }.bind(this));
         }
     }
 </script>
