@@ -19,13 +19,9 @@ php artisan migrate
 php artisan storage:link 
 
 
-enable register to create an user:
+create user using console:
+php artisan user:create email password
 
-laravel/config/fortify.php:  enable "Features::registration(),"
-
-disable it after user creation
-
-(@TODO make artisan command for user creation, so web register is not needed)
 
 
 add system cron (every minute):

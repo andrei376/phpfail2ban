@@ -1,7 +1,7 @@
 {
-    "/js/app.js": "/js/app.js",
-    "/css/app.css": "/css/app.css",
-    "/css/fonts/bootstrap-icons.woff": "/css/fonts/bootstrap-icons.woff",
-    "/css/fonts/bootstrap-icons.woff2": "/css/fonts/bootstrap-icons.woff2",
-    "/css/bootstrap-icons.css": "/css/bootstrap-icons.css"
+    "/js/app.js": "/js/app.js?id=86ddc2428e4f694efce0",
+    "/css/app.css": "/css/app.css?id=f84acff1fbf7c9ba7f7c",
+    "/css/fonts/bootstrap-icons.woff": "/css/fonts/bootstrap-icons.woff?id=809deebd5642271155bb",
+    "/css/fonts/bootstrap-icons.woff2": "/css/fonts/bootstrap-icons.woff2?id=26921b86c058059de3ef",
+    "/css/bootstrap-icons.css": "/css/bootstrap-icons.css?id=ea83ae92c684331d2096"
 }
