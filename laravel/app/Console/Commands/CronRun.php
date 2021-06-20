@@ -188,9 +188,9 @@ class CronRun extends Command
             return false;
         }
 
-        if ($deleted > 0) {
+        /*if ($deleted > 0) {
             RblLog::saveLog('crontab', __('[cleanup whois]'), __('[Deleted :deleted rows from whois table (older than 1 month)]', ['deleted' => $deleted]));
-        }
+        }*/
 
         return true;
     }
