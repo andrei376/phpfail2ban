@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\WhoisLib;
 use App\Models\Agent;
 use App\Models\IpInfo;
 use App\Models\RblLog;
@@ -237,8 +238,11 @@ class CronRun extends Command
 
         $debug = !$this->checkNewActions();
 
+        $update = !$this->checkMissingInfo();
 
-        if ($debug) {
+        $oldInfo = !$this->checkOldWhois();
+
+        if ($debug || $update || $oldInfo) {
             $time_end = microtime(true);
             $time = round($time_end - $time_start, 4);
 
@@ -282,6 +286,120 @@ class CronRun extends Command
                 return false;
             }
         }
+
+        return true;
+    }
+
+
+    /**
+     * if new ipinfo with empty whois data, update
+     *
+     * @return bool
+     */
+    private function checkMissingInfo()
+    {
+        //
+        $toUpdate = IpInfo::
+            where('checked', 0)
+            ->whereNull(['inetnum', 'netname', 'country', 'orgname', 'geoipcountry', 'last_check'])
+            ->first();
+
+        if (empty($toUpdate)) {
+            // $this->line('nothing to update');
+            return true;
+        }
+
+        // $this->line('to update='. print_r($toUpdate->toArray(), true));
+
+        $whoisLib = new WhoisLib();
+
+        $ipAddr = $toUpdate->format_ip;
+
+        $cidrInfo = $ipAddr.'/'.$toUpdate->mask;
+
+        $geoCountry = @geoip_country_name_by_name($ipAddr);
+
+        //get whois
+        $whoisData = $whoisLib->searchCache($cidrInfo, false);
+
+        //update whois
+        $toUpdate->update([
+            'inetnum' => $whoisData['inetnum'],
+            'netname' => $whoisData['netname'],
+            'country' => $whoisData['country'],
+            'orgname' => $whoisData['orgname'],
+            'geoipcountry' => $geoCountry,
+            'last_check' => now(),
+            'checked' => 1
+        ]);
+
+        return true;
+    }
+
+    /**
+     * update last_check field
+     *
+     * mark unchecked if whois data is changed
+     *
+     *
+     * @return bool
+     */
+    private function checkOldWhois(): bool
+    {
+        $whoisLib = new WhoisLib();
+
+        $toCheck = IpInfo::
+            where('last_check', '<', DB::raw('DATE_SUB(NOW(),INTERVAL 7 MONTH)'))
+            ->where('checked', 1)
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if (is_null($toCheck)) {
+            //nothing to do
+            return true;
+        }
+
+        // $this->line('$toCheck = '.print_r($toCheck->toArray(), true));
+
+        $ipWhois = $toCheck->format_ip . '/' . $toCheck->mask;
+
+        // $this->line('ip='.$ipWhois);
+
+        $whoisData = $whoisLib->searchCache($ipWhois);
+
+        //$this->line('whoisData='.print_r($whoisData, true));
+
+        if ($whoisData['inetnum'] != $toCheck->inetnum ||
+            $whoisData['netname'] != $toCheck->netname ||
+            $whoisData['country'] != $toCheck->country ||
+            $whoisData['orgname'] != $toCheck->orgname
+        ) {
+            //whois is changed, update last check and mark unchecked so a human checks the ip
+            $toCheck->last_check = date('Y-m-d H:i:s');
+            $toCheck->checked = 0;
+
+            //$this->line('to save ip='. print_r($toCheck->toArray(), true));
+
+            try {
+                $toCheck->saveOrFail();
+            } catch (Exception $e) {
+                $this->line(__("[ERROR! saving update ip, msg: :msg, trace:\n :trace]", ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]));
+                return false;
+            }
+        } else {
+            // $this->line($ipWhois.' no changes');
+
+            //all ok, update last check
+            $toCheck->last_check = date('Y-m-d H:i:s');
+
+            try {
+                $toCheck->saveOrFail();
+            } catch (Exception $e) {
+                $this->line(__("[ERROR! saving update ip, msg: :msg, trace:\n :trace]", ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]));
+                return false;
+            }
+        }
+
 
         return true;
     }
