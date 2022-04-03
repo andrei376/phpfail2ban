@@ -2,18 +2,24 @@
 
 namespace Doctrine\DBAL\Platforms;
 
+use Doctrine\DBAL\Driver\API\SQLite\UserDefinedFunctions;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Constraint;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types;
 use Doctrine\Deprecations\Deprecation;
 
+use function array_combine;
+use function array_keys;
 use function array_merge;
+use function array_search;
 use function array_unique;
 use function array_values;
 use function implode;
@@ -22,7 +28,6 @@ use function sprintf;
 use function sqrt;
 use function str_replace;
 use function strlen;
-use function strpos;
 use function strtolower;
 use function trim;
 
@@ -43,12 +48,20 @@ class SqlitePlatform extends AbstractPlatform
     }
 
     /**
+     * @deprecated Generate dates within the application.
+     *
      * @param string $type
      *
      * @return string
      */
     public function getNowExpression($type = 'timestamp')
     {
+        Deprecation::trigger(
+            'doctrine/dbal',
+            'https://github.com/doctrine/dbal/pull/4753',
+            'SqlitePlatform::getNowExpression() is deprecated. Generate dates within the application.'
+        );
+
         switch ($type) {
             case 'time':
                 return 'time(\'now\')';
@@ -192,9 +205,17 @@ class SqlitePlatform extends AbstractPlatform
 
     /**
      * {@inheritDoc}
+     *
+     * @deprecated
      */
     public function prefersIdentityColumns()
     {
+        Deprecation::trigger(
+            'doctrine/dbal',
+            'https://github.com/doctrine/dbal/pulls/1519',
+            'SqlitePlatform::prefersIdentityColumns() is deprecated.'
+        );
+
         return true;
     }
 
@@ -493,22 +514,6 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    public function getCreateViewSQL($name, $sql)
-    {
-        return 'CREATE VIEW ' . $name . ' AS ' . $sql;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getDropViewSQL($name)
-    {
-        return 'DROP VIEW ' . $name;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function getAdvancedForeignKeyOptionsSQL(ForeignKeyConstraint $foreignKey)
     {
         $query = parent::getAdvancedForeignKeyOptionsSQL($foreignKey);
@@ -527,6 +532,14 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         return $query;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supportsCreateDropDatabase()
+    {
+        return false;
     }
 
     /**
@@ -558,6 +571,12 @@ class SqlitePlatform extends AbstractPlatform
      */
     public function getName()
     {
+        Deprecation::triggerIfCalledFromOutside(
+            'doctrine/dbal',
+            'https://github.com/doctrine/dbal/issues/4749',
+            'SqlitePlatform::getName() is deprecated. Identify platforms by their class.'
+        );
+
         return 'sqlite';
     }
 
@@ -575,6 +594,8 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * User-defined function for Sqlite that is used with PDO::sqliteCreateFunction().
      *
+     * @deprecated The driver will use {@see sqrt()} in the next major release.
+     *
      * @param int|float $value
      *
      * @return float
@@ -587,6 +608,8 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * User-defined function for Sqlite that implements MOD(a, b).
      *
+     * @deprecated The driver will use {@see UserDefinedFunctions::mod()} in the next major release.
+     *
      * @param int $a
      * @param int $b
      *
@@ -594,10 +617,12 @@ class SqlitePlatform extends AbstractPlatform
      */
     public static function udfMod($a, $b)
     {
-        return $a % $b;
+        return UserDefinedFunctions::mod($a, $b);
     }
 
     /**
+     * @deprecated The driver will use {@see UserDefinedFunctions::locate()} in the next major release.
+     *
      * @param string $str
      * @param string $substr
      * @param int    $offset
@@ -606,19 +631,7 @@ class SqlitePlatform extends AbstractPlatform
      */
     public static function udfLocate($str, $substr, $offset = 0)
     {
-        // SQL's LOCATE function works on 1-based positions, while PHP's strpos works on 0-based positions.
-        // So we have to make them compatible if an offset is given.
-        if ($offset > 0) {
-            $offset -= 1;
-        }
-
-        $pos = strpos($str, $substr, $offset);
-
-        if ($pos !== false) {
-            return $pos + 1;
-        }
-
-        return 0;
+        return UserDefinedFunctions::locate($str, $substr, $offset);
     }
 
     /**
@@ -686,7 +699,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      *
-     * @deprecated Implement {@link createReservedKeywordsList()} instead.
+     * @deprecated Implement {@see createReservedKeywordsList()} instead.
      */
     protected function getReservedKeywordsClass()
     {
@@ -760,7 +773,7 @@ class SqlitePlatform extends AbstractPlatform
     protected function doModifyLimitQuery($query, $limit, $offset)
     {
         if ($limit === null && $offset > 0) {
-            return $query . ' LIMIT -1 OFFSET ' . $offset;
+            return sprintf('%s LIMIT -1 OFFSET %d', $query, $offset);
         }
 
         return parent::doModifyLimitQuery($query, $limit, $offset);
@@ -787,6 +800,8 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      *
+     * @deprecated
+     *
      * Sqlite Platform emulates schema by underscoring each dot and generating tables
      * into the default database.
      *
@@ -795,6 +810,12 @@ class SqlitePlatform extends AbstractPlatform
      */
     public function canEmulateSchemas()
     {
+        Deprecation::trigger(
+            'doctrine/dbal',
+            'https://github.com/doctrine/dbal/pull/4805',
+            'SqlitePlatform::canEmulateSchemas() is deprecated.'
+        );
+
         return true;
     }
 
@@ -832,6 +853,8 @@ class SqlitePlatform extends AbstractPlatform
 
     /**
      * {@inheritDoc}
+     *
+     * @deprecated
      */
     public function getCreateConstraintSQL(Constraint $constraint, $table)
     {
@@ -916,11 +939,7 @@ class SqlitePlatform extends AbstractPlatform
             }
 
             $oldColumnName = strtolower($oldColumnName);
-            if (isset($columns[$oldColumnName])) {
-                unset($columns[$oldColumnName]);
-            }
-
-            $columns[strtolower($column->getName())] = $column;
+            $columns       = $this->replaceColumn($diff->name, $columns, $oldColumnName, $column);
 
             if (! isset($newColumnNames[$oldColumnName])) {
                 continue;
@@ -934,11 +953,8 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            if (isset($columns[$oldColumnName])) {
-                unset($columns[$oldColumnName]);
-            }
-
-            $columns[strtolower($columnDiff->column->getName())] = $columnDiff->column;
+            $oldColumnName = strtolower($oldColumnName);
+            $columns       = $this->replaceColumn($diff->name, $columns, $oldColumnName, $columnDiff->column);
 
             if (! isset($newColumnNames[$oldColumnName])) {
                 continue;
@@ -1004,6 +1020,34 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         return array_merge($sql, $tableSql, $columnSql);
+    }
+
+    /**
+     * Replace the column with the given name with the new column.
+     *
+     * @param string               $tableName
+     * @param array<string,Column> $columns
+     * @param string               $columnName
+     *
+     * @return array<string,Column>
+     *
+     * @throws Exception
+     */
+    private function replaceColumn($tableName, array $columns, $columnName, Column $column): array
+    {
+        $keys  = array_keys($columns);
+        $index = array_search($columnName, $keys, true);
+
+        if ($index === false) {
+            throw SchemaException::columnDoesNotExist($columnName, $tableName);
+        }
+
+        $values = array_values($columns);
+
+        $keys[$index]   = strtolower($column->getName());
+        $values[$index] = $column;
+
+        return array_combine($keys, $values);
     }
 
     /**
@@ -1104,7 +1148,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * @return string[]
      */
-    private function getColumnNamesInAlteredTable(TableDiff $diff, Table $fromTable)
+    private function getColumnNamesInAlteredTable(TableDiff $diff, Table $fromTable): array
     {
         $columns = [];
 
@@ -1144,7 +1188,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * @return Index[]
      */
-    private function getIndexesInAlteredTable(TableDiff $diff, Table $fromTable)
+    private function getIndexesInAlteredTable(TableDiff $diff, Table $fromTable): array
     {
         $indexes     = $fromTable->getIndexes();
         $columnNames = $this->getColumnNamesInAlteredTable($diff, $fromTable);
@@ -1212,7 +1256,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * @return ForeignKeyConstraint[]
      */
-    private function getForeignKeysInAlteredTable(TableDiff $diff, Table $fromTable)
+    private function getForeignKeysInAlteredTable(TableDiff $diff, Table $fromTable): array
     {
         $foreignKeys = $fromTable->getForeignKeys();
         $columnNames = $this->getColumnNamesInAlteredTable($diff, $fromTable);
@@ -1276,7 +1320,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * @return Index[]
      */
-    private function getPrimaryIndexInAlteredTable(TableDiff $diff, Table $fromTable)
+    private function getPrimaryIndexInAlteredTable(TableDiff $diff, Table $fromTable): array
     {
         $primaryIndex = [];
 

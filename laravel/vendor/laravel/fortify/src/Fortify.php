@@ -66,6 +66,17 @@ class Fortify
     }
 
     /**
+     * Get a completion redirect path for a specific feature.
+     *
+     * @param  string  $redirect
+     * @return string
+     */
+    public static function redirects(string $redirect, $default = null)
+    {
+        return config('fortify.redirects.'.$redirect) ?? $default ?? config('fortify.home');
+    }
+
+    /**
      * Register the views for Fortify using conventional names under the given namespace.
      *
      * @param  string  $namespace
@@ -73,7 +84,7 @@ class Fortify
      */
     public static function viewNamespace(string $namespace)
     {
-        return static::viewPrefix($namespace.'::');
+        static::viewPrefix($namespace.'::');
     }
 
     /**
@@ -192,7 +203,7 @@ class Fortify
      */
     public static function loginThrough(callable $callback)
     {
-        return static::authenticateThrough($callback);
+        static::authenticateThrough($callback);
     }
 
     /**
@@ -236,7 +247,7 @@ class Fortify
      */
     public static function createUsersUsing(string $callback)
     {
-        return app()->singleton(CreatesNewUsers::class, $callback);
+        app()->singleton(CreatesNewUsers::class, $callback);
     }
 
     /**
@@ -247,7 +258,7 @@ class Fortify
      */
     public static function updateUserProfileInformationUsing(string $callback)
     {
-        return app()->singleton(UpdatesUserProfileInformation::class, $callback);
+        app()->singleton(UpdatesUserProfileInformation::class, $callback);
     }
 
     /**
@@ -258,7 +269,7 @@ class Fortify
      */
     public static function updateUserPasswordsUsing(string $callback)
     {
-        return app()->singleton(UpdatesUserPasswords::class, $callback);
+        app()->singleton(UpdatesUserPasswords::class, $callback);
     }
 
     /**
@@ -269,7 +280,18 @@ class Fortify
      */
     public static function resetUserPasswordsUsing(string $callback)
     {
-        return app()->singleton(ResetsUserPasswords::class, $callback);
+        app()->singleton(ResetsUserPasswords::class, $callback);
+    }
+
+    /**
+     * Determine if Fortify is confirming two factor authentication configurations.
+     *
+     * @return bool
+     */
+    public static function confirmsTwoFactorAuthentication()
+    {
+        return Features::enabled(Features::twoFactorAuthentication()) &&
+               Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
     }
 
     /**

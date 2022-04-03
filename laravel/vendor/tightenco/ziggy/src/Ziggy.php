@@ -3,15 +3,18 @@
 namespace Tightenco\Ziggy;
 
 use Illuminate\Contracts\Routing\UrlRoutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Reflector;
 use Illuminate\Support\Str;
 use JsonSerializable;
+use ReflectionClass;
 use ReflectionMethod;
 
 class Ziggy implements JsonSerializable
 {
-    protected $port;
+    protected static $cache;
+
     protected $url;
     protected $group;
     protected $routes;
@@ -21,9 +24,17 @@ class Ziggy implements JsonSerializable
         $this->group = $group;
 
         $this->url = rtrim($url ?? url('/'), '/');
-        $this->port = parse_url($this->url)['port'] ?? null;
 
-        $this->routes = $this->nameKeyedRoutes();
+        if (! static::$cache) {
+            static::$cache = $this->nameKeyedRoutes();
+        }
+
+        $this->routes = static::$cache;
+    }
+
+    public static function clearRoutes()
+    {
+        static::$cache = null;
     }
 
     private function applyFilters($group)
@@ -99,7 +110,7 @@ class Ziggy implements JsonSerializable
 
         return $routes->merge($fallbacks)
             ->map(function ($route) use ($bindings) {
-                return collect($route)->only(['uri', 'methods'])
+                return collect($route)->only(['uri', 'methods', 'wheres'])
                     ->put('domain', $route->domain())
                     ->put('bindings', $bindings[$route->getName()] ?? [])
                     ->when($middleware = config('ziggy.middleware'), function ($collection) use ($middleware, $route) {
@@ -119,7 +130,7 @@ class Ziggy implements JsonSerializable
     {
         return [
             'url' => $this->url,
-            'port' => $this->port,
+            'port' => parse_url($this->url)['port'] ?? null,
             'defaults' => method_exists(app('url'), 'getDefaultParameters')
                 ? app('url')->getDefaultParameters()
                 : [],
@@ -156,10 +167,15 @@ class Ziggy implements JsonSerializable
             $bindings = [];
 
             foreach ($route->signatureParameters(UrlRoutable::class) as $parameter) {
+                if (! in_array($parameter->getName(), $route->parameterNames())) {
+                    break;
+                }
+
                 $model = class_exists(Reflector::class)
                     ? Reflector::getParameterClassName($parameter)
                     : $parameter->getType()->getName();
-                $override = $model === (new ReflectionMethod($model, 'getRouteKeyName'))->class;
+                $override = (new ReflectionClass($model))->isInstantiable()
+                    && (new ReflectionMethod($model, 'getRouteKeyName'))->class !== Model::class;
 
                 // Avoid booting this model if it doesn't override the default route key name
                 $bindings[$parameter->getName()] = $override ? app($model)->getRouteKeyName() : 'id';

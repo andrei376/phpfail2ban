@@ -6,11 +6,23 @@ use Illuminate\Container\Container;
 use Illuminate\Contracts\Validation\DataAwareRule;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
+use Illuminate\Contracts\Validation\ValidatorAwareRule;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Traits\Conditionable;
+use InvalidArgumentException;
 
-class Password implements Rule, DataAwareRule
+class Password implements Rule, DataAwareRule, ValidatorAwareRule
 {
+    use Conditionable;
+
+    /**
+     * The validator performing the validation.
+     *
+     * @var \Illuminate\Contracts\Validation\Validator
+     */
+    protected $validator;
+
     /**
      * The data under validation.
      *
@@ -68,11 +80,25 @@ class Password implements Rule, DataAwareRule
     protected $compromisedThreshold = 0;
 
     /**
+     * Additional validation rules that should be merged into the default rules during validation.
+     *
+     * @var array
+     */
+    protected $customRules = [];
+
+    /**
      * The failure messages, if any.
      *
      * @var array
      */
     protected $messages = [];
+
+    /**
+     * The callback that will generate the "default" version of the password rule.
+     *
+     * @var string|array|callable|null
+     */
+    public static $defaultCallback;
 
     /**
      * Create a new rule instance.
@@ -83,6 +109,74 @@ class Password implements Rule, DataAwareRule
     public function __construct($min)
     {
         $this->min = max((int) $min, 1);
+    }
+
+    /**
+     * Set the default callback to be used for determining a password's default rules.
+     *
+     * If no arguments are passed, the default password rule configuration will be returned.
+     *
+     * @param  static|callable|null  $callback
+     * @return static|null
+     */
+    public static function defaults($callback = null)
+    {
+        if (is_null($callback)) {
+            return static::default();
+        }
+
+        if (! is_callable($callback) && ! $callback instanceof static) {
+            throw new InvalidArgumentException('The given callback should be callable or an instance of '.static::class);
+        }
+
+        static::$defaultCallback = $callback;
+    }
+
+    /**
+     * Get the default configuration of the password rule.
+     *
+     * @return static
+     */
+    public static function default()
+    {
+        $password = is_callable(static::$defaultCallback)
+                            ? call_user_func(static::$defaultCallback)
+                            : static::$defaultCallback;
+
+        return $password instanceof Rule ? $password : static::min(8);
+    }
+
+    /**
+     * Get the default configuration of the password rule and mark the field as required.
+     *
+     * @return array
+     */
+    public static function required()
+    {
+        return ['required', static::default()];
+    }
+
+    /**
+     * Get the default configuration of the password rule and mark the field as sometimes being required.
+     *
+     * @return array
+     */
+    public static function sometimes()
+    {
+        return ['sometimes', static::default()];
+    }
+
+    /**
+     * Set the performing validator.
+     *
+     * @param  \Illuminate\Contracts\Validation\Validator  $validator
+     * @return $this
+     */
+    public function setValidator($validator)
+    {
+        $this->validator = $validator;
+
+        return $this;
     }
 
     /**
@@ -101,7 +195,7 @@ class Password implements Rule, DataAwareRule
     /**
      * Sets the minimum size of the password.
      *
-     * @param  int $size
+     * @param  int  $size
      * @return $this
      */
     public static function min($size)
@@ -173,6 +267,19 @@ class Password implements Rule, DataAwareRule
     }
 
     /**
+     * Specify additional validation rules that should be merged with the default rules during validation.
+     *
+     * @param  string|array  $rules
+     * @return $this
+     */
+    public function rules($rules)
+    {
+        $this->customRules = Arr::wrap($rules);
+
+        return $this;
+    }
+
+    /**
      * Determine if the validation rule passes.
      *
      * @param  string  $attribute
@@ -181,34 +288,39 @@ class Password implements Rule, DataAwareRule
      */
     public function passes($attribute, $value)
     {
-        $validator = Validator::make($this->data, [
-            $attribute => 'string|min:'.$this->min,
-        ]);
+        $this->messages = [];
+
+        $validator = Validator::make(
+            $this->data,
+            [$attribute => array_merge(['string', 'min:'.$this->min], $this->customRules)],
+            $this->validator->customMessages,
+            $this->validator->customAttributes
+        )->after(function ($validator) use ($attribute, $value) {
+            if (! is_string($value)) {
+                return;
+            }
+
+            $value = (string) $value;
+
+            if ($this->mixedCase && ! preg_match('/(\p{Ll}+.*\p{Lu})|(\p{Lu}+.*\p{Ll})/u', $value)) {
+                $validator->errors()->add($attribute, 'The :attribute must contain at least one uppercase and one lowercase letter.');
+            }
+
+            if ($this->letters && ! preg_match('/\pL/u', $value)) {
+                $validator->errors()->add($attribute, 'The :attribute must contain at least one letter.');
+            }
+
+            if ($this->symbols && ! preg_match('/\p{Z}|\p{S}|\p{P}/u', $value)) {
+                $validator->errors()->add($attribute, 'The :attribute must contain at least one symbol.');
+            }
+
+            if ($this->numbers && ! preg_match('/\pN/u', $value)) {
+                $validator->errors()->add($attribute, 'The :attribute must contain at least one number.');
+            }
+        });
 
         if ($validator->fails()) {
             return $this->fail($validator->messages()->all());
-        }
-
-        $value = (string) $value;
-
-        if ($this->mixedCase && ! preg_match('/(\p{Ll}+.*\p{Lu})|(\p{Lu}+.*\p{Ll})/u', $value)) {
-            $this->fail('The :attribute must contain at least one uppercase and one lowercase letter.');
-        }
-
-        if ($this->letters && ! preg_match('/\pL/u', $value)) {
-            $this->fail('The :attribute must contain at least one letter.');
-        }
-
-        if ($this->symbols && ! preg_match('/\p{Z}|\p{S}|\p{P}/u', $value)) {
-            $this->fail('The :attribute must contain at least one symbol.');
-        }
-
-        if ($this->numbers && ! preg_match('/\pN/u', $value)) {
-            $this->fail('The :attribute must contain at least one number.');
-        }
-
-        if (! empty($this->messages)) {
-            return false;
         }
 
         if ($this->uncompromised && ! Container::getInstance()->make(UncompromisedVerifier::class)->verify([
@@ -242,7 +354,7 @@ class Password implements Rule, DataAwareRule
     protected function fail($messages)
     {
         $messages = collect(Arr::wrap($messages))->map(function ($message) {
-            return __($message);
+            return $this->validator->getTranslator()->get($message);
         })->all();
 
         $this->messages = array_merge($this->messages, $messages);

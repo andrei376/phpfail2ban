@@ -5,9 +5,9 @@ namespace Doctrine\DBAL\Schema;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\DB2Platform;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 
 use function array_change_key_case;
-use function assert;
 use function preg_match;
 use function str_replace;
 use function strpos;
@@ -18,6 +18,8 @@ use const CASE_LOWER;
 
 /**
  * IBM Db2 Schema Manager.
+ *
+ * @extends AbstractSchemaManager<DB2Platform>
  */
 class DB2SchemaManager extends AbstractSchemaManager
 {
@@ -69,11 +71,19 @@ class DB2SchemaManager extends AbstractSchemaManager
 
         switch (strtolower($tableColumn['typename'])) {
             case 'varchar':
+                if ($tableColumn['codepage'] === 0) {
+                    $type = Types::BINARY;
+                }
+
                 $length = $tableColumn['length'];
                 $fixed  = false;
                 break;
 
             case 'character':
+                if ($tableColumn['codepage'] === 0) {
+                    $type = Types::BINARY;
+                }
+
                 $length = $tableColumn['length'];
                 $fixed  = true;
                 break;
@@ -226,9 +236,7 @@ class DB2SchemaManager extends AbstractSchemaManager
     {
         $table = parent::listTableDetails($name);
 
-        $platform = $this->_platform;
-        assert($platform instanceof DB2Platform);
-        $sql = $platform->getListTableCommentsSQL($name);
+        $sql = $this->_platform->getListTableCommentsSQL($name);
 
         $tableOptions = $this->_conn->fetchAssociative($sql);
 

@@ -4,13 +4,17 @@ namespace Tightenco\Ziggy;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Tightenco\Ziggy\Output\File;
 use Tightenco\Ziggy\Ziggy;
 
 class CommandRouteGenerator extends Command
 {
-    protected $signature = 'ziggy:generate {path=./resources/js/ziggy.js} {--url=} {--group=}';
+    protected $signature = 'ziggy:generate
+                            {path=./resources/js/ziggy.js : Path to the generated JavaScript file.}
+                            {--url=}
+                            {--group=}';
 
-    protected $description = 'Generate js file for including in build process';
+    protected $description = 'Generate a JavaScript file containing Ziggy’s routes and configuration.';
 
     protected $files;
 
@@ -32,30 +36,21 @@ class CommandRouteGenerator extends Command
         $this->info('File generated!');
     }
 
-    private function generate($group = false)
-    {
-        $payload = (new Ziggy($group, $this->option('url') ? url($this->option('url')) : null))->toJson();
-
-        return <<<JAVASCRIPT
-const Ziggy = {$payload};
-
-if (typeof window !== 'undefined' && typeof window.Ziggy !== 'undefined') {
-    for (let name in window.Ziggy.routes) {
-        Ziggy.routes[name] = window.Ziggy.routes[name];
-    }
-}
-
-export { Ziggy };
-
-JAVASCRIPT;
-    }
-
     protected function makeDirectory($path)
     {
         if (! $this->files->isDirectory(dirname(base_path($path)))) {
-            $this->files->makeDirectory(dirname(base_path($path)), 0777, true, true);
+            $this->files->makeDirectory(dirname(base_path($path)), 0755, true, true);
         }
 
         return $path;
+    }
+
+    private function generate($group = false)
+    {
+        $ziggy = (new Ziggy($group, $this->option('url') ? url($this->option('url')) : null));
+
+        $output = config('ziggy.output.file', File::class);
+
+        return (string) new $output($ziggy);
     }
 }

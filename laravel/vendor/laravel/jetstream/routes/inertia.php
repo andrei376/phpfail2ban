@@ -20,7 +20,15 @@ Route::group(['middleware' => config('jetstream.middleware', ['web'])], function
         Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('policy.show');
     }
 
-    Route::group(['middleware' => ['auth', 'verified']], function () {
+    $authMiddleware = config('jetstream.guard')
+            ? 'auth:'.config('jetstream.guard')
+            : 'auth';
+
+    $authSessionMiddleware = config('jetstream.auth_session', false)
+            ? config('jetstream.auth_session')
+            : null;
+
+    Route::group(['middleware' => array_values(array_filter([$authMiddleware, $authSessionMiddleware, 'verified']))], function () {
         // User & Profile...
         Route::get('/user/profile', [UserProfileController::class, 'show'])
                     ->name('profile.show');

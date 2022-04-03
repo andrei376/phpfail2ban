@@ -50,7 +50,7 @@
                                             </div>
 
                                             <!-- Role Description -->
-                                            <div class="mt-2 text-xs text-gray-600">
+                                            <div class="mt-2 text-xs text-gray-600 text-left">
                                                 {{ $role->description }}
                                             </div>
                                         </div>
@@ -206,7 +206,7 @@
                 {{ __('Cancel') }}
             </x-jet-secondary-button>
 
-            <x-jet-button class="ml-2" wire:click="updateRole" wire:loading.attr="disabled">
+            <x-jet-button class="ml-3" wire:click="updateRole" wire:loading.attr="disabled">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>
@@ -227,7 +227,7 @@
                 {{ __('Cancel') }}
             </x-jet-secondary-button>
 
-            <x-jet-danger-button class="ml-2" wire:click="leaveTeam" wire:loading.attr="disabled">
+            <x-jet-danger-button class="ml-3" wire:click="leaveTeam" wire:loading.attr="disabled">
                 {{ __('Leave') }}
             </x-jet-danger-button>
         </x-slot>
@@ -248,7 +248,7 @@
                 {{ __('Cancel') }}
             </x-jet-secondary-button>
 
-            <x-jet-danger-button class="ml-2" wire:click="removeTeamMember" wire:loading.attr="disabled">
+            <x-jet-danger-button class="ml-3" wire:click="removeTeamMember" wire:loading.attr="disabled">
                 {{ __('Remove') }}
             </x-jet-danger-button>
         </x-slot>

@@ -8,6 +8,104 @@ Breaking changes are marked with ⚠️.
 
 ## [Unreleased]
 
+## [v1.4.5] - 2022-03-25
+
+## [v1.4.4] - 2022-03-11
+
+**Added**
+
+- Allow custom output via formatters by @jaulz in https://github.com/tighten/ziggy/pull/483
+- Add Vue 3 `provide`/`inject` support to the Vue plugin by @c-fitzmaurice in https://github.com/tighten/ziggy/pull/518
+
+**Fixed**
+
+- Encode non-slash characters in wildcard last parameter by @rodrigopedra in https://github.com/tighten/ziggy/pull/507
+- Update JS route matching to take 'wheres' into account by @Tofandel in https://github.com/tighten/ziggy/pull/514
+
+## [v1.4.3] - 2022-01-28
+
+**Added**
+
+- Test on PHP 8.1 by @bakerkretzmar in https://github.com/tighten/ziggy/pull/484
+- Don't encode slashes in wildcard last parameter by @bakerkretzmar in https://github.com/tighten/ziggy/pull/500
+
+**Fixed**
+
+- Ignore route action parameters without URI segments by @jaulz in https://github.com/tighten/ziggy/pull/482
+
+## [v1.4.2] - 2021-10-01
+
+**Fixed**
+
+- Fix `route().current()` matching route names with multiple periods ([#466](https://github.com/tighten/ziggy/pull/466))
+
+## [v1.4.1] - 2021-09-24
+
+**Fixed**
+
+- Fix `undefined` error if there's no global `Ziggy` variable ([#462](https://github.com/tighten/ziggy/pull/462))
+- Fix payload caching for Octane ([#460](https://github.com/tighten/ziggy/pull/460))
+
+## [v1.4.0] - 2021-08-25
+
+**Added**
+
+- Add support for parameters inside single route segments ([#444](https://github.com/tighten/ziggy/pull/444))
+
+## [v1.3.6] - 2021-08-25
+
+**Fixed**
+
+- Fix nested object query params ([#451](https://github.com/tighten/ziggy/pull/451))
+
+## [v1.3.5] - 2021-07-20
+
+**Fixed**
+
+- Fix route model binding with abstract class ([#445](https://github.com/tighten/ziggy/pull/445))
+
+## [v1.3.4] - 2021-07-06
+
+**Fixed**
+
+- Fix property mangling and implement ES5 compatibility ([#442](https://github.com/tighten/ziggy/pull/442))
+
+## [v1.3.3] - 2021-07-02
+
+**Fixed**
+
+- Revert ([d781b16](https://github.com/tighten/ziggy/commit/d781b164b8f455730fe8a8b0cbf91f0f8cb55a73))
+
+## [v1.3.2] - 2021-07-01
+
+**Fixed**
+
+- Remove Babel preset to correctly transpile to ES5 by default ([d781b16](https://github.com/tighten/ziggy/commit/d781b164b8f455730fe8a8b0cbf91f0f8cb55a73))
+
+## [v1.3.1] - 2021-06-19
+
+**Changed**
+
+- Use `Object.assign()` to merge routes ([#429](https://github.com/tighten/ziggy/pull/429))
+
+## [v1.3.0] - 2021-06-17
+
+**Added**
+
+- Make `location` configurable (adds better support for SSR) ([#432](https://github.com/tighten/ziggy/pull/432))
+
+## [v1.2.0] - 2021-05-24
+
+**Added**
+
+- Add Vue plugins ([#407](https://github.com/tighten/ziggy/pull/407), [#424](https://github.com/tighten/ziggy/pull/424))
+
+## [v1.1.0] - 2021-04-02
+
+**Added**
+
+- Prepare for Laravel Octane ([#415](https://github.com/tighten/ziggy/pull/415))
+
 ## [v1.0.5] - 2021-02-05
 
 **Added**
@@ -129,7 +227,22 @@ Breaking changes are marked with ⚠️.
 
 For previous changes see the [Releases](https://github.com/tighten/ziggy/releases) page.
 
-[Unreleased]: https://github.com/tighten/ziggy/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/tighten/ziggy/compare/v1.4.5...HEAD
+[v1.4.5]: https://github.com/tighten/ziggy/compare/v1.4.4...v1.4.5
+[v1.4.4]: https://github.com/tighten/ziggy/compare/v1.4.3...v1.4.4
+[v1.4.3]: https://github.com/tighten/ziggy/compare/v1.4.2...v1.4.3
+[v1.4.2]: https://github.com/tighten/ziggy/compare/v1.4.1...v1.4.2
+[v1.4.1]: https://github.com/tighten/ziggy/compare/v1.4.0...v1.4.1
+[v1.4.0]: https://github.com/tighten/ziggy/compare/v1.3.6...v1.4.0
+[v1.3.6]: https://github.com/tighten/ziggy/compare/v1.3.5...v1.3.6
+[v1.3.5]: https://github.com/tighten/ziggy/compare/v1.3.4...v1.3.5
+[v1.3.4]: https://github.com/tighten/ziggy/compare/v1.3.3...v1.3.4
+[v1.3.3]: https://github.com/tighten/ziggy/compare/v1.3.2...v1.3.3
+[v1.3.2]: https://github.com/tighten/ziggy/compare/v1.3.1...v1.3.2
+[v1.3.1]: https://github.com/tighten/ziggy/compare/v1.3.0...v1.3.1
+[v1.3.0]: https://github.com/tighten/ziggy/compare/v1.2.0...v1.3.0
+[v1.2.0]: https://github.com/tighten/ziggy/compare/v1.1.0...v1.2.0
+[v1.1.0]: https://github.com/tighten/ziggy/compare/v1.0.5...v1.1.0
 [v1.0.5]: https://github.com/tighten/ziggy/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/tighten/ziggy/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/tighten/ziggy/compare/v1.0.2...v1.0.3

@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Features;
-use Laravel\Jetstream\Features as JetstreamFeatures;
 use Tests\TestCase;
 
 class EmailVerificationTest extends TestCase
@@ -22,9 +21,7 @@ class EmailVerificationTest extends TestCase
             return $this->markTestSkipped('Email verification not enabled.');
         }
 
-        $user = User::factory()->withPersonalTeam()->create([
-            'email_verified_at' => null,
-        ]);
+        $user = User::factory()->withPersonalTeam()->unverified()->create();
 
         $response = $this->actingAs($user)->get('/email/verify');
 
@@ -39,9 +36,7 @@ class EmailVerificationTest extends TestCase
 
         Event::fake();
 
-        $user = User::factory()->create([
-            'email_verified_at' => null,
-        ]);
+        $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
@@ -63,9 +58,7 @@ class EmailVerificationTest extends TestCase
             return $this->markTestSkipped('Email verification not enabled.');
         }
 
-        $user = User::factory()->create([
-            'email_verified_at' => null,
-        ]);
+        $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
