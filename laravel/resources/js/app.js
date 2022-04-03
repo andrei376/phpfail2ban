@@ -61,7 +61,7 @@ createApp({
     .use(InertiaPlugin)
     .use(VueNoty, {
         theme: 'bootstrap-v4',
-        timeout: 6000,
+        timeout: 2000,
         layout: 'top',
         progressBar: true,
     })
