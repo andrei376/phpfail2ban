@@ -16,8 +16,10 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'jetstream:install {stack : The development stack that should be installed}
+    protected $signature = 'jetstream:install {stack : The development stack that should be installed (inertia,livewire)}
                                               {--teams : Indicates if team support should be installed}
+                                              {--api : Indicates if API support should be installed}
+                                              {--verification : Indicates if email verification support should be installed}
                                               {--pest : Indicates if Pest should be installed}
                                               {--ssr : Indicates if Inertia SSR support should be installed}
                                               {--composer=global : Absolute path to the Composer binary which should be used to install packages}';
@@ -58,6 +60,16 @@ class InstallCommand extends Command
         // Configure Session...
         $this->configureSession();
 
+        // Configure API...
+        if ($this->option('api')) {
+            $this->replaceInFile('// Features::api(),', 'Features::api(),', config_path('jetstream.php'));
+        }
+
+        // Configure Email Verification...
+        if ($this->option('verification')) {
+            $this->replaceInFile('// Features::emailVerification(),', 'Features::emailVerification(),', config_path('fortify.php'));
+        }
+
         // Install Stack...
         if ($this->argument('stack') === 'livewire') {
             $this->installLivewireStack();
@@ -69,7 +81,7 @@ class InstallCommand extends Command
         $stubs = $this->getTestStubsPath();
 
         if ($this->option('pest')) {
-            $this->requireComposerPackages('pestphp/pest:^1.16', 'pestphp/pest-plugin-laravel:^1.1');
+            $this->requireComposerDevPackages('pestphp/pest:^1.16', 'pestphp/pest-plugin-laravel:^1.1');
 
             copy($stubs.'/Pest.php', base_path('tests/Pest.php'));
             copy($stubs.'/ExampleTest.php', base_path('tests/Feature/ExampleTest.php'));
@@ -127,10 +139,9 @@ class InstallCommand extends Command
         // NPM Packages...
         $this->updateNodePackages(function ($packages) {
             return [
-                '@tailwindcss/forms' => '^0.4.0',
+                '@tailwindcss/forms' => '^0.5.0',
                 '@tailwindcss/typography' => '^0.5.0',
                 'alpinejs' => '^3.0.6',
-                'postcss-import' => '^14.0.1',
                 'tailwindcss' => '^3.0.0',
             ] + $packages;
         });
@@ -291,7 +302,6 @@ EOF;
                 '@inertiajs/progress' => '^0.2.7',
                 '@tailwindcss/forms' => '^0.5.0',
                 '@tailwindcss/typography' => '^0.5.2',
-                'postcss-import' => '^14.0.2',
                 'tailwindcss' => '^3.0.0',
                 'vue' => '^3.2.31',
                 '@vue/compiler-sfc' => '^3.2.31',
@@ -593,6 +603,32 @@ EOF;
 
         $command = array_merge(
             $command ?? ['composer', 'require'],
+            is_array($packages) ? $packages : func_get_args()
+        );
+
+        (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
+            ->setTimeout(null)
+            ->run(function ($type, $output) {
+                $this->output->write($output);
+            });
+    }
+
+    /**
+     * Install the given Composer Packages as "dev" dependencies.
+     *
+     * @param  mixed  $packages
+     * @return void
+     */
+    protected function requireComposerDevPackages($packages)
+    {
+        $composer = $this->option('composer');
+
+        if ($composer !== 'global') {
+            $command = [$this->phpBinary(), $composer, 'require', '--dev'];
+        }
+
+        $command = array_merge(
+            $command ?? ['composer', 'require', '--dev'],
             is_array($packages) ? $packages : func_get_args()
         );
 
