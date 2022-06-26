@@ -151,7 +151,7 @@ class StatsController extends Controller
             Log::error(
                 __METHOD__.
                 ' error: '.$e->getMessage()."\n".
-                ', trace: '.$e->getTraceAsString()."\n\n"
+                ', data: '.print_r($saveIp, true)."\n\n"
             );
 
             return response()->json(['message' => __('[error saving ip]')], 400);
@@ -180,8 +180,7 @@ class StatsController extends Controller
         } catch (Exception $e) {
             Log::error(
                 __METHOD__.
-                ' error: '.$e->getMessage()."\n".
-                ', trace: '.$e->getTraceAsString()."\n\n"
+                ' error: '.$e->getMessage()."\n"
             );
 
             return response()->json(['message' => __('[error deleting old agent info]')], 400);
@@ -211,7 +210,7 @@ class StatsController extends Controller
             Log::error(
                 __METHOD__.
                 ' error: '.$e->getMessage()."\n".
-                ', trace: '.$e->getTraceAsString()."\n\n"
+                ', data: '.print_r($saveAgent, true)."\n\n"
             );
 
             return response()->json(['message' => __('[error saving agent info]')], 400);
