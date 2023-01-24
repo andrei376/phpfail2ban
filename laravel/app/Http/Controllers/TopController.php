@@ -704,7 +704,7 @@ class TopController extends Controller
             $searchField = 'agents.id';
         }
 
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
         // $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
         $groupBy = ['ip_info_id', 'ip_infos.ipnum', 'mask', 'netname', 'country', 'jail'];
 
@@ -744,12 +744,12 @@ class TopController extends Controller
             return response('', 400);
         }
 
-        Log::debug(
+        /*Log::debug(
             __METHOD__.
             " query: \n".
             print_r(DB::getQueryLog(), true).
             "\n"
-        );
+        );*/
 
         foreach ($data as $id => $row) {
             // dump($row->toArray());
