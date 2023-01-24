@@ -706,7 +706,7 @@ class TopController extends Controller
 
         DB::enableQueryLog();
         // $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
-        $groupBy = ['ip_info_id', 'agents.id', 'ip_infos.id', 'ip_infos.ipnum', 'mask', 'netname', 'country', 'jail'];
+        $groupBy = ['ip_info_id', 'ip_infos.ipnum', 'mask', 'netname', 'country', 'jail'];
 
         try {
             $data = $model
@@ -715,7 +715,6 @@ class TopController extends Controller
                 ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
                 ->groupBy($groupBy)
                 ->select([
-                    'agents.id',
                     'ip_info_id',
                     DB::raw('@total := @total + 1 AS `index`'),
                     DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ip_infos`.`ipnum`)), 128, 32))-`ip_infos`.`mask`)) AS `total_ip`'),
