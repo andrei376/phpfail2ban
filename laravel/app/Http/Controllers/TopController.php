@@ -704,7 +704,7 @@ class TopController extends Controller
 
         DB::enableQueryLog();
         // $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
-        $groupBy = ['ip_info_id'];
+        $groupBy = ['ip_info_id', 'agents.id'];
 
         try {
             $data = $model
