@@ -730,6 +730,7 @@ class TopController extends Controller
 
                 ->where($searchField, 'like', '%'.$searchValue.'%')
                 // ->withCount('actions')
+                ->withTrashed()
 
                 ->paginate($request->perPage);
         } catch (Exception $e) {
