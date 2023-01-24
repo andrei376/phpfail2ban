@@ -715,7 +715,6 @@ class TopController extends Controller
                 ->select([
                     'agents.id',
                     'ip_info_id',
-                    'ip_infos.id',
                     DB::raw('@total := @total + 1 AS `index`'),
                     DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ip_infos`.`ipnum`)), 128, 32))-`ip_infos`.`mask`)) AS `total_ip`'),
                     DB::raw('COUNT(*) AS `row_count`'),
