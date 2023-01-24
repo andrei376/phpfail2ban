@@ -706,6 +706,7 @@ class TopController extends Controller
 
         try {
             $data = $model
+                ->with('ipinfo')
                 ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
                 ->groupBy($groupBy)
                 ->select([
@@ -726,7 +727,7 @@ class TopController extends Controller
 
                 ->where($searchField, 'like', '%'.$searchValue.'%')
                 // ->withCount('actions')
-                ->with('ipinfo')
+
                 ->paginate($request->perPage);
         } catch (Exception $e) {
             Log::error(
