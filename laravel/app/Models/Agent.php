@@ -33,6 +33,15 @@ class Agent extends Model
         return $this->belongsTo(IpInfo::class);
     }
 
+    public function getRowCountFormatAttribute(): ?string
+    {
+        if (is_null($this->row_count)) {
+            return null;
+        }
+
+        return number_format ($this->row_count,  0 ,  "," ,  "." );
+    }
+
     public function getTimeFormatAttribute()
     {
         if (is_null($this->created_at)) {

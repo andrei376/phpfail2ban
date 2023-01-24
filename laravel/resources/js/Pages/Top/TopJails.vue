@@ -37,7 +37,7 @@ export default {
                     'searchField': 'format_cidr',
                     'inertiaText': 'format_cidr',
                     'inertiaHrefRoute': 'top.show',
-                    'inertiaHrefParams': [{'name': 'id', 'value': 'id'}],
+                    'inertiaHrefParams': [{'name': 'id', 'value': 'ip_info_id'}],
                 },
                 {
                     'name': this.__('[netname]'),
@@ -56,11 +56,18 @@ export default {
                     'searchField': 'country'
                 },
                 {
-                    'name': this.__('[Total actions]'),
-                    'showField': 'actions_count_format',
+                    'name': this.__('[Jail]'),
+                    'showField': 'jail',
                     'class': 'w-1/12',
                     'sort': true,
-                    'sortField': 'actions_count',
+                    'sortField': 'jail'
+                },
+                {
+                    'name': this.__('[Total actions]'),
+                    'showField': 'row_count_format',
+                    'class': 'w-1/12',
+                    'sort': true,
+                    'sortField': 'row_count',
                 },
                 {
                     'name': this.__('[Total IP]'),
