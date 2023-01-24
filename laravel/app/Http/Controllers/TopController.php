@@ -690,6 +690,66 @@ class TopController extends Controller
         return LogsResource::collection($data);
     }
 
+    public function topJails(Request $request)
+    {
+        $model = new IpInfo();
+
+        $search = $this->parseSearchFields($request);
+
+        $searchField = $search['searchField'];
+        $searchValue = $search['searchValue'];
+
+        DB::enableQueryLog();
+        $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
+
+        try {
+            $data = $model
+                ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
+                ->groupBy($groupBy)
+                ->select([
+                    'id',
+                    DB::raw('@total := @total + 1 AS `index`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('COUNT(*) AS `row_count`'),
+                    DB::raw('CONCAT(INET6_NTOA(`ipnum`),"/",`mask`) AS `format_cidr`'),
+                    'ipnum',
+                    'mask',
+                    'netname',
+                    'country'
+                ])
+                ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
+
+                ->where($searchField, 'like', '%'.$searchValue.'%')
+                ->withCount('actions')
+                ->paginate($request->perPage);
+        } catch (Exception $e) {
+            Log::error(
+                __METHOD__.
+                ' error: '.$e->getMessage().
+                ", line=".$e->getLine().
+                "\n"
+            );
+
+            return response('', 400);
+        }
+
+        Log::debug(
+            __METHOD__.
+            " query: \n".
+            print_r(DB::getQueryLog(), true).
+            "\n"
+        );
+
+        foreach ($data as $id => $row) {
+            // dump($row->toArray());
+            $data[$id]['ipnum'] = inet_ntop($row->ipnum);
+            $data[$id]['start'] = inet_ntop($row->start);
+            $data[$id]['end'] = inet_ntop($row->end);
+        }
+
+        return LogsResource::collection($data);
+    }
+
     public function topNetname(Request $request)
     {
         $model = new IpInfo();

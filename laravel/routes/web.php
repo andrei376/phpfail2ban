@@ -63,6 +63,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/topip1', [TopController::class, 'topIp1'])->name('top.ip1');
     Route::post('/topcountry', [TopController::class, 'topCountry'])->name('top.country');
     Route::post('/topactions', [TopController::class, 'topActions'])->name('top.actions');
+    Route::post('/topjails', [TopController::class, 'topJails'])->name('top.jails');
     Route::post('/topnetname', [TopController::class, 'topNetname'])->name('top.netname');
     Route::post('/topinetnum', [TopController::class, 'topInetnum'])->name('top.inetnum');
     Route::post('/toporgname', [TopController::class, 'topOrgname'])->name('top.orgname');
