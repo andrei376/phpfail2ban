@@ -714,7 +714,7 @@ class TopController extends Controller
                     DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
                     DB::raw('COUNT(*) AS `row_count`'),
                     DB::raw('CONCAT(INET6_NTOA(`ipnum`),"/",`mask`) AS `format_cidr`'),
-                    'ipnum',
+                    'ipinfo.ipnum',
                     'mask',
                     'netname',
                     'country',
