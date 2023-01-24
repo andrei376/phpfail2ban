@@ -25,7 +25,8 @@ class Agent extends Model
     protected $appends = [
         'time_format',
         'time_ago',
-        'row_count_format'
+        'row_count_format',
+        'total_db_ip_format'
     ];
 
     public function ipinfo()
@@ -41,6 +42,15 @@ class Agent extends Model
         }
 
         return number_format ($this->row_count,  0 ,  "," ,  "." );
+    }
+
+    public function getTotalDbIpFormatAttribute(): ?string
+    {
+        if (is_null($this->total_ip)) {
+            return null;
+        }
+
+        return number_format ($this->total_ip ,  0 ,  "," ,  "." );
     }
 
     public function getTimeFormatAttribute()
