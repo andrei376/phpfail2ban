@@ -707,6 +707,7 @@ class TopController extends Controller
         try {
             $data = $model
                 ->with('ipinfo')
+                ->join('ip_infos', 'ip_info_id', '=', 'id')
                 ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
                 ->groupBy($groupBy)
                 ->select([
