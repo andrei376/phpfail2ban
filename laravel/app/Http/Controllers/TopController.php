@@ -711,9 +711,9 @@ class TopController extends Controller
                 ->select([
                     'id',
                     DB::raw('@total := @total + 1 AS `index`'),
-                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
+                    DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipinfo`.`ipnum`)), 128, 32))-`ipinfo`.`mask`)) AS `total_ip`'),
                     DB::raw('COUNT(*) AS `row_count`'),
-                    DB::raw('CONCAT(INET6_NTOA(`ipnum`),"/",`mask`) AS `format_cidr`'),
+                    DB::raw('CONCAT(INET6_NTOA(`ipinfo`.`ipnum`),"/",`ipinfo`.`mask`) AS `format_cidr`'),
                     'ipinfo.ipnum',
                     'mask',
                     'netname',
