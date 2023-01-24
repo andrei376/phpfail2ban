@@ -536,9 +536,9 @@ class TopController extends Controller
                     DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipnum`)), 128, 32))-`mask`)) AS `total_ip`'),
                     DB::raw('COUNT(*) AS `row_count`'),
                     $ip1,
-                    DB::raw('ANY_VALUE(`created_at`) AS `created_at`'),
-                    DB::raw('ANY_VALUE(`last_check`) AS `last_check`'),
-                    DB::raw('ANY_VALUE(`ipnum`) AS `ipnum`')
+                    DB::raw('MIN(`created_at`) AS `created_at`'),
+                    DB::raw('MIN(`last_check`) AS `last_check`'),
+                    DB::raw('MIN(`ipnum`) AS `ipnum`')
                 ])
                 ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
 
