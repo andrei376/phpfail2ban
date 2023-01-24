@@ -707,11 +707,11 @@ class TopController extends Controller
         try {
             $data = $model
                 ->with('ipinfo')
-                ->join('ip_infos', 'ip_info_id', '=', 'id')
+                ->join('ip_infos', 'agent.ip_info_id', '=', 'ip_infos.id')
                 ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
                 ->groupBy($groupBy)
                 ->select([
-                    'id',
+                    'agent.id',
                     'ip_info_id',
                     'ipinfo.id',
                     DB::raw('@total := @total + 1 AS `index`'),
