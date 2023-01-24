@@ -710,6 +710,8 @@ class TopController extends Controller
                 ->groupBy($groupBy)
                 ->select([
                     'id',
+                    'ip_info_id',
+                    'ipinfo.id',
                     DB::raw('@total := @total + 1 AS `index`'),
                     DB::raw('SUM(POW(2,(IF(LOCATE(":", INET6_NTOA(`ipinfo`.`ipnum`)), 128, 32))-`ipinfo`.`mask`)) AS `total_ip`'),
                     DB::raw('COUNT(*) AS `row_count`'),
