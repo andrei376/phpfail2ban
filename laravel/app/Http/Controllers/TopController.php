@@ -724,7 +724,7 @@ class TopController extends Controller
 
                 ->where($searchField, 'like', '%'.$searchValue.'%')
                 // ->withCount('actions')
-                ->ipinfo()
+                ->with('ipinfo')
                 ->paginate($request->perPage);
         } catch (Exception $e) {
             Log::error(
