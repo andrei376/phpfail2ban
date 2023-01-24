@@ -640,7 +640,7 @@ class TopController extends Controller
         $searchValue = $search['searchValue'];
 
         // DB::enableQueryLog();
-        $groupBy = ['id', 'ipnum'];
+        $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
 
         try {
             $data = $model
