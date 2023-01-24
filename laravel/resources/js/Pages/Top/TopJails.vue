@@ -3,7 +3,7 @@
         <data-table
             :columns="columns"
             :data-url="this.route('top.jails')"
-            :order-by="'actions_count'"
+            :order-by="'row_count'"
             :order-dir="'desc'"
             :per-page-rows="10"
         />
