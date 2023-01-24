@@ -19,6 +19,9 @@
                             <div v-if="showTop === this.__('[Show by actions]')">
                                 <top-actions />
                             </div>
+                            <div v-if="showTop === this.__('[Show by jails]')">
+                                <top-jails />
+                            </div>
                             <div v-if="showTop === this.__('[Show by netname]')">
                                 <top-netname />
                             </div>
@@ -47,7 +50,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import TopIp1 from "@/Pages/Top/TopIp1";
 import TopCountry from "@/Pages/Top/TopCountry";
 import TopActions from "@/Pages/Top/TopActions";
-
+import TopJails from "@/Pages/Top/TopJails";
 import TopNetname from "@/Pages/Top/TopNetname";
 import TopInetnum from "@/Pages/Top/TopInetnum";
 import TopOrgname from "@/Pages/Top/TopOrgname";
@@ -61,6 +64,7 @@ export default {
         TopIp1,
         TopCountry,
         TopActions,
+        TopJails,
         TopNetname,
         TopInetnum,
         TopOrgname,
@@ -74,6 +78,7 @@ export default {
                 this.__('[Show by ip1]'),
                 this.__('[Show by country]'),
                 this.__('[Show by actions]'),
+                this.__('[Show by jails]'),
                 this.__('[Show by netname]'),
                 this.__('[Show by inetnum]'),
                 this.__('[Show by orgname]'),
