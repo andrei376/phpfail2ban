@@ -640,11 +640,12 @@ class TopController extends Controller
         $searchValue = $search['searchValue'];
 
         // DB::enableQueryLog();
+        $groupBy = ['id', 'ipnum'];
 
         try {
             $data = $model
                 ->orderBy($request->column ?? 'total_ip', $request->order ?? 'desc')
-                ->groupBy('id')
+                ->groupBy($groupBy)
                 ->select([
                     'id',
                     DB::raw('@total := @total + 1 AS `index`'),
