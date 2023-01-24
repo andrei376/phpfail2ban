@@ -25,6 +25,7 @@ class Agent extends Model
     protected $appends = [
         'time_format',
         'time_ago',
+        'row_count_format'
     ];
 
     public function ipinfo()

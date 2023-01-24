@@ -60,7 +60,8 @@ export default {
                     'showField': 'jail',
                     'class': 'w-1/12',
                     'sort': true,
-                    'sortField': 'jail'
+                    'sortField': 'jail',
+                    'searchField': 'jail'
                 },
                 {
                     'name': this.__('[Total actions]'),
