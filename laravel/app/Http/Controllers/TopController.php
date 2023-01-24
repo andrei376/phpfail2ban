@@ -700,6 +700,8 @@ class TopController extends Controller
         $searchField = $search['searchField'];
         $searchValue = $search['searchValue'];
 
+        $searchField = 'agents.id';
+
         DB::enableQueryLog();
         // $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
         $groupBy = ['ip_info_id'];
