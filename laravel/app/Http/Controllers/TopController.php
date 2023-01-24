@@ -692,7 +692,8 @@ class TopController extends Controller
 
     public function topJails(Request $request)
     {
-        $model = new IpInfo();
+        // $model = new IpInfo();
+        $model = new Agent();
 
         $search = $this->parseSearchFields($request);
 
@@ -700,7 +701,8 @@ class TopController extends Controller
         $searchValue = $search['searchValue'];
 
         DB::enableQueryLog();
-        $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
+        // $groupBy = ['id', 'ipnum', 'mask', 'netname', 'country'];
+        $groupBy = ['ip_info_id'];
 
         try {
             $data = $model
@@ -715,12 +717,14 @@ class TopController extends Controller
                     'ipnum',
                     'mask',
                     'netname',
-                    'country'
+                    'country',
+                    'jail'
                 ])
                 ->crossJoin(DB::raw("(SELECT @total := 0) AS `fakeTotal`"))
 
                 ->where($searchField, 'like', '%'.$searchValue.'%')
-                ->withCount('actions')
+                // ->withCount('actions')
+                ->ipinfo()
                 ->paginate($request->perPage);
         } catch (Exception $e) {
             Log::error(

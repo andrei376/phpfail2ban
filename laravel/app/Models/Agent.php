@@ -27,6 +27,12 @@ class Agent extends Model
         'time_ago',
     ];
 
+    public function ipinfo()
+    {
+        // return $this->hasOne(Agent::class);
+        return $this->belongsTo(IpInfo::class);
+    }
+
     public function getTimeFormatAttribute()
     {
         if (is_null($this->created_at)) {
