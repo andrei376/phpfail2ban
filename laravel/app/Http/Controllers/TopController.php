@@ -756,12 +756,12 @@ class TopController extends Controller
             $data[$id]['end'] = inet_ntop($row->end);
         }
 
-        Log::debug(
+        /*Log::debug(
             __METHOD__.
             " data: \n".
             print_r($data, true).
             "\n"
-        );
+        );*/
 
         return LogsResource::collection($data);
     }
