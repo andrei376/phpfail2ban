@@ -3,7 +3,7 @@ require('./bootstrap');
 // Import modules...
 import { createApp, h } from 'vue';
 import { createInertiaApp, Link } from '@inertiajs/vue3';
-import { InertiaProgress } from '@inertiajs/progress';
+//import { InertiaProgress } from '@inertiajs/progress';
 import mitt from 'mitt';
 import crono from 'vue-crono';
 import VueNoty from './noty';
@@ -127,4 +127,4 @@ createInertiaApp({
     },
 });
 
-InertiaProgress.init({ color: '#4B5563' });
+//InertiaProgress.init({ color: '#4B5563' });
