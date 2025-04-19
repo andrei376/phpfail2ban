@@ -317,7 +317,7 @@ class CronRun extends Command
 
         $cidrInfo = $ipAddr.'/'.$toUpdate->mask;
 
-        $geoCountry = @geoip_country_name_by_name($ipAddr);
+        $geoCountry = 'TODO GEOIP';//@geoip_country_name_by_name($ipAddr);
 
         //get whois
         $whoisData = $whoisLib->searchCache($cidrInfo, false);
