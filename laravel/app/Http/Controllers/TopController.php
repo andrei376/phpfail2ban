@@ -198,7 +198,7 @@ class TopController extends Controller
 
         // dump($whoisData);
 
-        $geoCountry = geoip_country_name_by_name($ipAddr);
+        $geoCountry = 'TODO GEOIP';//geoip_country_name_by_name($ipAddr);
 
         $ipInfo->ipnum = inet_ntop($ipInfo->ipnum);
         $ipInfo->start = inet_ntop($ipInfo->start);

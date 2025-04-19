@@ -11,9 +11,11 @@ use PHPStan\Reflection\Native\NativeParameterReflection;
 use PHPStan\Reflection\ParameterReflection;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\ClosureType;
+use PHPStan\Type\Constant\ConstantArrayType;
 use PHPStan\Type\Php\RegexArrayShapeMatcher;
 use PHPStan\Type\StaticMethodParameterClosureTypeExtension;
 use PHPStan\Type\StringType;
+use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\Type;
 
 final class PregReplaceCallbackClosureTypeExtension implements StaticMethodParameterClosureTypeExtension
@@ -31,7 +33,7 @@ final class PregReplaceCallbackClosureTypeExtension implements StaticMethodParam
     public function isStaticMethodSupported(MethodReflection $methodReflection, ParameterReflection $parameter): bool
     {
         return in_array($methodReflection->getDeclaringClass()->getName(), [Preg::class, Regex::class], true)
-            && in_array($methodReflection->getName(), ['replaceCallback'], true)
+            && in_array($methodReflection->getName(), ['replaceCallback', 'replaceCallbackStrictGroups'], true)
             && $parameter->getName() === 'replacement';
     }
 
@@ -47,14 +49,36 @@ final class PregReplaceCallbackClosureTypeExtension implements StaticMethodParam
             return null;
         }
 
-        $flagsType = null;
-        if ($flagsArg !== null) {
-            $flagsType = $scope->getType($flagsArg->value);
-        }
+        $flagsType = PregMatchFlags::getType($flagsArg, $scope);
 
         $matchesType = $this->regexShapeMatcher->matchExpr($patternArg->value, $flagsType, TrinaryLogic::createYes(), $scope);
         if ($matchesType === null) {
             return null;
+        }
+
+        if ($methodReflection->getName() === 'replaceCallbackStrictGroups' && count($matchesType->getConstantArrays()) === 1) {
+            $matchesType = $matchesType->getConstantArrays()[0];
+            $matchesType = new ConstantArrayType(
+                $matchesType->getKeyTypes(),
+                array_map(static function (Type $valueType): Type {
+                    if (count($valueType->getConstantArrays()) === 1) {
+                        $valueTypeArray = $valueType->getConstantArrays()[0];
+                        return new ConstantArrayType(
+                            $valueTypeArray->getKeyTypes(),
+                            array_map(static function (Type $valueType): Type {
+                                return TypeCombinator::removeNull($valueType);
+                            }, $valueTypeArray->getValueTypes()),
+                            $valueTypeArray->getNextAutoIndexes(),
+                            [],
+                            $valueTypeArray->isList()
+                        );
+                    }
+                    return TypeCombinator::removeNull($valueType);
+                }, $matchesType->getValueTypes()),
+                $matchesType->getNextAutoIndexes(),
+                [],
+                $matchesType->isList()
+            );
         }
 
         return new ClosureType(
