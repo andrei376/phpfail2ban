@@ -95,7 +95,11 @@ class Tag implements \Reflector
         'var'
             => '\Barryvdh\Reflection\DocBlock\Tag\VarTag',
         'version'
-            => '\Barryvdh\Reflection\DocBlock\Tag\VersionTag'
+            => '\Barryvdh\Reflection\DocBlock\Tag\VersionTag',
+        'SuppressWarnings'
+            => '\Barryvdh\Reflection\DocBlock\Tag\SuppressWarningsTag',
+        'template'
+            => '\Barryvdh\Reflection\DocBlock\Tag\TemplateTag'
     );
 
     /**
@@ -111,8 +115,8 @@ class Tag implements \Reflector
      */
     final public static function createInstance(
         $tag_line,
-        DocBlock $docblock = null,
-        Location $location = null
+        ?DocBlock $docblock = null,
+        ?Location $location = null
     ) {
         if (!preg_match(
             '/^@(' . self::REGEX_TAGNAME . ')(?:\s*([^\s].*)|$)?/us',
@@ -192,8 +196,8 @@ class Tag implements \Reflector
     public function __construct(
         $name,
         $content,
-        DocBlock $docblock = null,
-        Location $location = null
+        ?DocBlock $docblock = null,
+        ?Location $location = null
     ) {
         $this
             ->setName($name)
@@ -321,7 +325,7 @@ class Tag implements \Reflector
      * 
      * @return $this
      */
-    public function setDocBlock(DocBlock $docblock = null)
+    public function setDocBlock(?DocBlock $docblock = null)
     {
         $this->docblock = $docblock;
 
@@ -345,11 +349,44 @@ class Tag implements \Reflector
      * 
      * @return $this
      */
-    public function setLocation(Location $location = null)
+    public function setLocation(?Location $location = null)
     {
         $this->location = $location;
 
         return $this;
+    }
+
+    /**
+     * If the given tags should be together or apart.
+     *
+     * @param Tag $tag
+     *
+     * @return bool
+     */
+    public function inSameGroup(Tag $tag)
+    {
+        $firstName = $this->getName();
+        $secondName = $tag->getName();
+
+        if ($firstName === $secondName) {
+            return true;
+        }
+
+        $groups = array(
+            array('deprecated', 'link', 'see', 'since'),
+            array('author', 'copyright', 'license'),
+            array('category', 'package', 'subpackage'),
+            array('property', 'property-read', 'property-write'),
+            array('param', 'return'),
+        );
+
+        foreach ($groups as $group) {
+            if (in_array($firstName, $group, true) && in_array($secondName, $group, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

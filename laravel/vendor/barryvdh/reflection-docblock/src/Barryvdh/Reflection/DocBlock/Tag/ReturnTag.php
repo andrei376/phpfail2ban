@@ -26,7 +26,7 @@ class ReturnTag extends Tag
 {
     /** @var string The raw type component. */
     protected $type = '';
-    
+
     /** @var Collection The parsed type component. */
     protected $types = null;
 
@@ -49,7 +49,7 @@ class ReturnTag extends Tag
     {
         parent::setContent($content);
 
-        $parts = preg_split('/\s+/Su', $this->description, 2);
+        $parts = preg_split('/(?<!,)\s+/Su', $this->description, 2);
 
         // any output is considered a type
         $this->type = $parts[0];
@@ -112,7 +112,7 @@ class ReturnTag extends Tag
 
     /**
      * Returns the type collection.
-     * 
+     *
      * @return void
      */
     protected function getTypesCollection()
@@ -120,7 +120,8 @@ class ReturnTag extends Tag
         if (null === $this->types) {
             $this->types = new Collection(
                 array($this->type),
-                $this->docblock ? $this->docblock->getContext() : null
+                $this->docblock ? $this->docblock->getContext() : null,
+                $this->docblock ? $this->docblock->getGenerics() : array()
             );
         }
         return $this->types;
